@@ -8,6 +8,13 @@
       "when": 1766187636207,
       "tag": "0000_hard_talon",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1766190888992,
+      "tag": "0001_cute_tombstone",
+      "breakpoints": true
     }
   ]
 }

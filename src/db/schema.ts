@@ -7,17 +7,52 @@ import {
 } from "drizzle-orm/sqlite-core";
 
 // ============================================
-// USER & CUSTOMER MANAGEMENT
+// AUTHENTICATION TABLES (NextAuth.js)
 // ============================================
 
 export const users = sqliteTable("users", {
     id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
     email: text("email").notNull().unique(),
-    name: text("name").notNull(),
+    emailVerified: text("email_verified"),
+    name: text("name"),
+    password: text("password"), // Hashed password for credentials auth
+    image: text("image"),
     role: text("role").notNull().default("USER"), // ADMIN, USER, MANAGER
     createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
     updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
 });
+
+export const accounts = sqliteTable("accounts", {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+    userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    type: text("type").notNull(),
+    provider: text("provider").notNull(),
+    providerAccountId: text("provider_account_id").notNull(),
+    refresh_token: text("refresh_token"),
+    access_token: text("access_token"),
+    expires_at: integer("expires_at"),
+    token_type: text("token_type"),
+    scope: text("scope"),
+    id_token: text("id_token"),
+    session_state: text("session_state"),
+});
+
+export const sessions = sqliteTable("sessions", {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+    sessionToken: text("session_token").notNull().unique(),
+    userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    expires: text("expires").notNull(),
+});
+
+export const verificationTokens = sqliteTable("verification_tokens", {
+    identifier: text("identifier").notNull(),
+    token: text("token").notNull().unique(),
+    expires: text("expires").notNull(),
+});
+
+// ============================================
+// CUSTOMER MANAGEMENT
+// ============================================
 
 export const customers = sqliteTable("customers", {
     id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
@@ -308,6 +343,12 @@ export const documents = sqliteTable("documents", {
 // Type exports for insert/select operations
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
+export type Account = typeof accounts.$inferSelect;
+export type NewAccount = typeof accounts.$inferInsert;
+export type Session = typeof sessions.$inferSelect;
+export type NewSession = typeof sessions.$inferInsert;
+export type VerificationToken = typeof verificationTokens.$inferSelect;
+export type NewVerificationToken = typeof verificationTokens.$inferInsert;
 export type Customer = typeof customers.$inferSelect;
 export type NewCustomer = typeof customers.$inferInsert;
 export type LoanProduct = typeof loanProducts.$inferSelect;
