@@ -155,7 +155,7 @@ export function OnboardingForm() {
         .then((data) => {
           if (data.success && data.userDetails) {
             const { name, dob, mobile, aadhaarNumber, panNumber } = data.userDetails;
-            
+
             // Parse name
             if (name) {
               const parts = name.trim().split(" ");
@@ -173,7 +173,7 @@ export function OnboardingForm() {
             if (mobile) form.setValue("phone", mobile);
             if (aadhaarNumber) form.setValue("aadhaarNumber", aadhaarNumber);
             if (panNumber) form.setValue("panNumber", panNumber);
-            
+
             toast.success("Details pre-filled from DigiLocker");
           }
         })
@@ -235,13 +235,16 @@ export function OnboardingForm() {
       }
 
       toast.success("Profile created successfully!", {
-        description: kycCompleted 
+        description: kycCompleted
           ? "You're all set! Your KYC is verified."
           : "You can complete KYC later when applying for a loan.",
       });
 
       // Update session to reflect onboarding completion
       await update({ onboardingCompleted: true });
+
+      // Refresh the router to ensure proper middleware revalidation
+      router.refresh();
 
       localStorage.removeItem("onboarding-form-data");
       router.push("/dashboard");
@@ -269,13 +272,12 @@ export function OnboardingForm() {
               <button
                 type="button"
                 onClick={() => index < currentStep && setCurrentStep(index)}
-                className={`flex items-center gap-2 px-3 py-2 transition-all ${
-                  isCurrent
+                className={`flex items-center gap-2 px-3 py-2 transition-all ${isCurrent
                     ? "bg-primary text-primary-foreground"
                     : isCompleted
-                    ? "bg-primary/10 text-primary cursor-pointer hover:bg-primary/20"
-                    : "bg-muted text-muted-foreground"
-                }`}
+                      ? "bg-primary/10 text-primary cursor-pointer hover:bg-primary/20"
+                      : "bg-muted text-muted-foreground"
+                  }`}
               >
                 {isCompleted ? (
                   <RiCheckLine className="h-4 w-4" />
@@ -287,9 +289,8 @@ export function OnboardingForm() {
                 <span className="font-medium text-sm hidden lg:inline">{step.title}</span>
               </button>
               {index < steps.length - 1 && (
-                <div className={`w-6 lg:w-12 h-0.5 mx-1 ${
-                  isCompleted ? "bg-primary" : "bg-border"
-                }`} />
+                <div className={`w-6 lg:w-12 h-0.5 mx-1 ${isCompleted ? "bg-primary" : "bg-border"
+                  }`} />
               )}
             </div>
           );
@@ -359,27 +360,27 @@ export function OnboardingForm() {
                         <p className="text-xs text-destructive">{form.formState.errors.dateOfBirth.message}</p>
                       )}
                     </div>
-                    
+
                     {/* Verified Docs */}
                     <div className="space-y-2">
-                       <Label htmlFor="aadhaarNumber">Aadhaar Number {form.watch("aadhaarNumber") && <span className="text-xs text-success ml-2">(Verified)</span>}</Label>
-                       <Input 
-                         id="aadhaarNumber" 
-                         {...form.register("aadhaarNumber")} 
-                         disabled={!!form.watch("aadhaarNumber")} 
-                         className={form.watch("aadhaarNumber") ? "bg-muted" : ""}
-                         placeholder="Verified from DigiLocker"
-                       />
+                      <Label htmlFor="aadhaarNumber">Aadhaar Number {form.watch("aadhaarNumber") && <span className="text-xs text-success ml-2">(Verified)</span>}</Label>
+                      <Input
+                        id="aadhaarNumber"
+                        {...form.register("aadhaarNumber")}
+                        disabled={!!form.watch("aadhaarNumber")}
+                        className={form.watch("aadhaarNumber") ? "bg-muted" : ""}
+                        placeholder="Verified from DigiLocker"
+                      />
                     </div>
                     <div className="space-y-2">
-                       <Label htmlFor="panNumber">PAN Number {form.watch("panNumber") && <span className="text-xs text-success ml-2">(Verified)</span>}</Label>
-                       <Input 
-                         id="panNumber" 
-                         {...form.register("panNumber")} 
-                         disabled={!!form.watch("panNumber")}
-                         className={form.watch("panNumber") ? "bg-muted" : ""}
-                         placeholder="Verified from DigiLocker"
-                       />
+                      <Label htmlFor="panNumber">PAN Number {form.watch("panNumber") && <span className="text-xs text-success ml-2">(Verified)</span>}</Label>
+                      <Input
+                        id="panNumber"
+                        {...form.register("panNumber")}
+                        disabled={!!form.watch("panNumber")}
+                        className={form.watch("panNumber") ? "bg-muted" : ""}
+                        placeholder="Verified from DigiLocker"
+                      />
                     </div>
                   </div>
                 )}
@@ -395,7 +396,7 @@ export function OnboardingForm() {
                       onVerificationComplete={handleKycComplete}
                       onSkip={handleKycSkip}
                     />
-                    
+
                     {kycSkipped && !kycCompleted && (
                       <p className="text-sm text-center text-muted-foreground">
                         You can complete KYC later when applying for a loan.

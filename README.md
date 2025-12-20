@@ -2,7 +2,8 @@
 
 A modern, full-stack **Loan Management System** for **NBFC** (Non-Banking Financial Company) specializing in **LAMF** (Lending Against Mutual Funds).
 
-![Next.js](https://img.shields.io/badge/Next.js-14-black)
+![Next.js](https://img.shields.io/badge/Next.js-16-black)
+![React](https://img.shields.io/badge/React-19-blue)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)
 ![Drizzle ORM](https://img.shields.io/badge/Drizzle-ORM-green)
 ![Turso](https://img.shields.io/badge/Turso-SQLite-orange)
@@ -17,6 +18,9 @@ A modern, full-stack **Loan Management System** for **NBFC** (Non-Banking Financ
 4. **Active Loans** - Monitor active loans, LTV ratios, and EMI schedules
 5. **Collateral Management** - Track pledged mutual fund units, NAV, and valuations
 6. **Customer Management** - KYC-verified customer profiles with Aadhaar/PAN verification
+7. **Analytics** - Visual reports on portfolio health, disbursement trends, and risk metrics
+8. **Approvals** - Workflow for loan approval, overrides, and sensitive actions
+9. **Audit Trail** - Complete history of all system actions for compliance
 
 ### Customer Onboarding
 
@@ -39,7 +43,8 @@ Headers: X-API-Key: your-api-key
 
 ## 🛠️ Tech Stack
 
-- **Framework**: Next.js 14 (App Router)
+- **Framework**: Next.js 16 (App Router)
+- **Core**: React 19
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS + shadcn/ui
 - **ORM**: Drizzle ORM
@@ -151,6 +156,25 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
             │ dueDate, EMI  │   │ mode, status  │
             │ status        │   └───────────────┘
             └───────────────┘
+
+### System & Compliance
+
+┌───────────────┐   ┌───────────────┐   ┌───────────────┐
+│  AUDIT_LOGS   │   │ NOTIFICATIONS │   │   APPROVALS   │
+└───────────────┘   └───────────────┘   └───────────────┘
+        ▲                   ▲                   ▲
+        │                   │                   │
+        └───────────────────┼───────────────────┘
+                            │
+                  ┌───────────────────┐
+                  │       USERS       │
+                  └───────────────────┘
+                            │
+                  ┌─────────┴─────────┐
+                  ▼                   ▼
+          ┌───────────────┐   ┌──────────────────┐
+          │  KYC_VERIF.   │   │   DIGILOCKER     │
+          └───────────────┘   └──────────────────┘
 ```
 
 ## 🔌 API Reference
@@ -215,15 +239,24 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 src/
 ├── app/
 │   ├── (dashboard)/          # Dashboard layout group
+│   │   ├── dashboard/        # Main dashboard
 │   │   ├── products/         # Loan Products module
 │   │   ├── applications/     # Applications module
-│   │   │   └── new/          # New application form
 │   │   ├── loans/            # Active Loans module
 │   │   ├── collateral/       # Collateral Management
-│   │   └── customers/        # Customer Management
+│   │   ├── customers/        # Customer Management
+│   │   ├── analytics/        # Reports & Analytics
+│   │   ├── approvals/        # Approval Workflows
+│   │   ├── activity/         # Audit Logs
+│   │   ├── notifications/    # System Notifications
+│   │   ├── playbook/         # System Guidelines
+│   │   └── onboarding/       # Customer Onboarding
 │   ├── api/
+│   │   ├── admin/            # Admin operations
 │   │   ├── products/         # Products API
 │   │   ├── applications/     # Applications API
+│   │   ├── kyc/              # KYC & DigiLocker API
+│   │   ├── audit-logs/       # Audit Logging API
 │   │   └── external/         # External Fintech API
 │   └── layout.tsx            # Root layout with fonts
 ├── components/
