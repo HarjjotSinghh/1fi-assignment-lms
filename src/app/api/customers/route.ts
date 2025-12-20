@@ -22,6 +22,8 @@ export async function POST(request: Request) {
             monthlyIncome,
             companyName,
             kycStatus = "PENDING",
+            aadhaarNumber,
+            panNumber,
         } = body;
 
         // Validate required fields
@@ -31,6 +33,10 @@ export async function POST(request: Request) {
                 { status: 400 }
             );
         }
+
+        // Determine verification status
+        const isAadhaarVerified = !!aadhaarNumber;
+        const isPanVerified = !!panNumber;
 
         // Check if customer with email already exists
         const existingCustomer = await db
@@ -57,6 +63,10 @@ export async function POST(request: Request) {
                     monthlyIncome: monthlyIncome || null,
                     companyName: companyName || null,
                     kycStatus,
+                    aadhaarNumber: aadhaarNumber || existingCustomer[0].aadhaarNumber,
+                    panNumber: panNumber || existingCustomer[0].panNumber,
+                    aadhaarVerified: isAadhaarVerified || existingCustomer[0].aadhaarVerified,
+                    panVerified: isPanVerified || existingCustomer[0].panVerified,
                     updatedAt: new Date().toISOString(),
                 })
                 .where(eq(customers.email, email))
@@ -87,6 +97,10 @@ export async function POST(request: Request) {
                 monthlyIncome: monthlyIncome || null,
                 companyName: companyName || null,
                 kycStatus,
+                aadhaarNumber: aadhaarNumber || null,
+                panNumber: panNumber || null,
+                aadhaarVerified: isAadhaarVerified,
+                panVerified: isPanVerified,
             })
             .returning();
 

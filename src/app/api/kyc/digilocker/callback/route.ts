@@ -35,18 +35,101 @@ export async function GET(request: Request) {
 
         const record = verification[0];
 
-        // Determine redirect based on context
-        // If there's a customerId, redirect to onboarding or applications
-        if (record.customerId) {
-            return NextResponse.redirect(
-                `${appUrl}/applications/new?kyc_verification=${verificationId}&kyc_status=${record.status}`
-            );
+        // Check if status is PENDING, if so fetch latest status
+        if (record.status === "PENDING") {
+            try {
+                const { getVerificationStatus, getDocument } = await import("@/lib/cashfree");
+
+                const cashfreeStatus = await getVerificationStatus({
+                    verificationId: verificationId,
+                });
+
+                if (cashfreeStatus.status === "AUTHENTICATED") {
+                    // Fetch documents
+                    let aadhaarNumber = null;
+                    let panNumber = null;
+                    let userName = cashfreeStatus.user_details?.name;
+                    let userDob = cashfreeStatus.user_details?.dob;
+                    let userGender = cashfreeStatus.user_details?.gender;
+                    let userMobile = cashfreeStatus.user_details?.mobile;
+
+                    // Try to fetch Aadhaar if consented
+                    if (cashfreeStatus.document_consent?.includes("AADHAAR")) {
+                        try {
+                            const aadhaarDoc = await getDocument("AADHAAR", { verificationId });
+                            if ('uid' in aadhaarDoc) {
+                                aadhaarNumber = aadhaarDoc.uid;
+                                // Prefer document details if available
+                                if (aadhaarDoc.name) userName = aadhaarDoc.name;
+                                if (aadhaarDoc.dob) userDob = aadhaarDoc.dob;
+                                if (aadhaarDoc.gender) userGender = aadhaarDoc.gender;
+                            }
+                        } catch (e) {
+                            console.error("Failed to fetch Aadhaar details", e);
+                        }
+                    }
+
+                    // Try to fetch PAN if consented
+                    if (cashfreeStatus.document_consent?.includes("PAN")) {
+                        try {
+                            const panDoc = await getDocument("PAN", { verificationId });
+                            if ('pan' in panDoc) {
+                                panNumber = panDoc.pan;
+                                // Fallback name/dob if not from Aadhaar
+                                if (!userName && panDoc.name) userName = panDoc.name;
+                                if (!userDob && panDoc.dob) userDob = panDoc.dob;
+                            }
+                        } catch (e) {
+                            console.error("Failed to fetch PAN details", e);
+                        }
+                    }
+
+                    // Update verification record
+                    await db.update(kycVerifications)
+                        .set({
+                            status: "AUTHENTICATED",
+                            userName,
+                            userDob,
+                            userGender,
+                            userMobile,
+                            aadhaarNumber,
+                            panNumber,
+                            documentsConsented: JSON.stringify(cashfreeStatus.document_consent),
+                            consentExpiresAt: cashfreeStatus.document_consent_validity,
+                            completedAt: new Date().toISOString(),
+                            updatedAt: new Date().toISOString(),
+                        })
+                        .where(eq(kycVerifications.id, record.id));
+
+                    // Update local record for redirect logic
+                    record.status = "AUTHENTICATED";
+                } else if (cashfreeStatus.status !== record.status) {
+                    // Update other status changes
+                    await db.update(kycVerifications)
+                        .set({
+                            status: cashfreeStatus.status,
+                            updatedAt: new Date().toISOString(),
+                        })
+                        .where(eq(kycVerifications.id, record.id));
+
+                    record.status = cashfreeStatus.status as any;
+                }
+            } catch (error) {
+                console.error("Error updating verification status in callback:", error);
+            }
         }
 
-        // For general verification, redirect to onboarding
-        return NextResponse.redirect(
-            `${appUrl}/onboarding?kyc_verification=${verificationId}&kyc_status=${record.status}`
-        );
+        // Determine redirect based on context
+        const redirectParams = new URLSearchParams({
+            kyc_verification: verificationId,
+            kyc_status: record.status,
+        });
+
+        const redirectUrl = record.customerId
+            ? `${appUrl}/applications/new?${redirectParams.toString()}`
+            : `${appUrl}/onboarding?${redirectParams.toString()}`;
+
+        return NextResponse.redirect(redirectUrl);
 
     } catch (error) {
         console.error("Error processing DigiLocker callback:", error);

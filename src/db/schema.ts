@@ -369,6 +369,10 @@ export const kycVerifications = sqliteTable("kyc_verifications", {
     userGender: text("user_gender"),
     userMobile: text("user_mobile"),
 
+    // Document details
+    aadhaarNumber: text("aadhaar_number"),
+    panNumber: text("pan_number"),
+
     // Consent validity
     consentExpiresAt: text("consent_expires_at"),
 

@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useForm } from "react-hook-form";
+import { useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import {
@@ -54,6 +55,10 @@ const onboardingSchema = z.object({
   employmentType: z.enum(["SALARIED", "SELF_EMPLOYED", "BUSINESS"]).optional(),
   monthlyIncome: z.coerce.number().optional(),
   companyName: z.string().optional(),
+
+  // KYC Info
+  aadhaarNumber: z.string().optional(),
+  panNumber: z.string().optional(),
 });
 
 type OnboardingFormData = z.infer<typeof onboardingSchema>;
@@ -99,8 +104,44 @@ export function OnboardingForm() {
       employmentType: undefined,
       monthlyIncome: undefined,
       companyName: "",
+      aadhaarNumber: "",
+      panNumber: "",
     },
   });
+
+  // Fetch verified data if available
+  useEffect(() => {
+    if (kycVerification && kycStatus === "AUTHENTICATED") {
+      fetch(`/api/kyc/digilocker/status?verification_id=${kycVerification}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success && data.userDetails) {
+            const { name, dob, mobile, aadhaarNumber, panNumber } = data.userDetails;
+            
+            // Parse name
+            if (name) {
+              const parts = name.trim().split(" ");
+              if (parts.length > 0) form.setValue("firstName", parts[0]);
+              if (parts.length > 1) form.setValue("lastName", parts.slice(1).join(" "));
+            }
+
+            // Parse DOB (DD-MM-YYYY to YYYY-MM-DD or similar)
+            if (dob) {
+              // DigiLocker often returns DD-MM-YYYY
+              const [d, m, y] = dob.split("-");
+              if (d && m && y) form.setValue("dateOfBirth", `${y}-${m}-${d}`);
+            }
+
+            if (mobile) form.setValue("phone", mobile);
+            if (aadhaarNumber) form.setValue("aadhaarNumber", aadhaarNumber);
+            if (panNumber) form.setValue("panNumber", panNumber);
+            
+            toast.success("Details pre-filled from DigiLocker");
+          }
+        })
+        .catch((err) => console.error("Failed to fetch KYC details", err));
+    }
+  }, [kycVerification, kycStatus, form]);
 
   const nextStep = async () => {
     const fieldsToValidate = getFieldsForStep(currentStep);
@@ -278,6 +319,28 @@ export function OnboardingForm() {
                       {form.formState.errors.dateOfBirth && (
                         <p className="text-xs text-destructive">{form.formState.errors.dateOfBirth.message}</p>
                       )}
+                    </div>
+                    
+                    {/* Verified Docs */}
+                    <div className="space-y-2">
+                       <Label htmlFor="aadhaarNumber">Aadhaar Number {form.watch("aadhaarNumber") && <span className="text-xs text-success ml-2">(Verified)</span>}</Label>
+                       <Input 
+                         id="aadhaarNumber" 
+                         {...form.register("aadhaarNumber")} 
+                         disabled={!!form.watch("aadhaarNumber")} 
+                         className={form.watch("aadhaarNumber") ? "bg-muted" : ""}
+                         placeholder="Verified from DigiLocker"
+                       />
+                    </div>
+                    <div className="space-y-2">
+                       <Label htmlFor="panNumber">PAN Number {form.watch("panNumber") && <span className="text-xs text-success ml-2">(Verified)</span>}</Label>
+                       <Input 
+                         id="panNumber" 
+                         {...form.register("panNumber")} 
+                         disabled={!!form.watch("panNumber")}
+                         className={form.watch("panNumber") ? "bg-muted" : ""}
+                         placeholder="Verified from DigiLocker"
+                       />
                     </div>
                   </div>
                 )}

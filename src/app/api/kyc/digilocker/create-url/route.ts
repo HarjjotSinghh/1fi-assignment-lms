@@ -58,7 +58,7 @@ export async function POST(request: Request) {
         const verificationId = generateVerificationId();
 
         // Build redirect URL
-        const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+        const appUrl = "https://1fi-assignment-lms.vercel.app";
         const redirectUrl = `${appUrl}/api/kyc/digilocker/callback?verification_id=${verificationId}`;
 
         // Create DigiLocker URL via Cashfree

@@ -117,6 +117,8 @@ export async function GET(request: Request) {
                 dob: verification.userDob,
                 gender: verification.userGender,
                 mobile: verification.userMobile,
+                aadhaarNumber: verification.aadhaarNumber,
+                panNumber: verification.panNumber,
             } : null,
             consentExpiresAt: verification.consentExpiresAt,
             expiresAt: verification.expiresAt,
