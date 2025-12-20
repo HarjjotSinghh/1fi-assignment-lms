@@ -196,7 +196,7 @@ export default async function DashboardPage() {
           <CardDescription>Common tasks and operations</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 space-y-4">
             <Link href="/applications/new">
               <Button variant="outline" className="w-full h-auto py-4 flex-col gap-2 hover:bg-primary hover:text-primary-foreground transition-colors press-scale">
                 <FileText className="h-5 w-5" />

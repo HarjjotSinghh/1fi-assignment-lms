@@ -3,20 +3,21 @@ import { customers } from "@/db/schema";
 import { desc } from "drizzle-orm";
 import Link from "next/link";
 import {
-  RiUserLine,
-  RiUserAddLine,
   RiCheckLine,
-  RiTimeLine,
-  RiCloseLine,
   RiEyeLine,
-  RiMore2Line,
-  RiShieldCheckLine,
   RiMailLine,
+  RiMore2Line,
   RiPhoneLine,
+  RiSearchLine,
+  RiShieldCheckLine,
+  RiTimeLine,
+  RiUserAddLine,
+  RiUserLine,
+  RiCloseLine,
 } from "react-icons/ri";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -33,6 +34,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatDate, getStatusColor, maskPan, maskAadhaar } from "@/lib/utils";
 
 async function getCustomers() {
@@ -48,10 +50,12 @@ export default async function CustomersPage() {
 
   const stats = {
     total: allCustomers.length,
-    verified: allCustomers.filter((c) => c.kycStatus === "VERIFIED").length,
-    pending: allCustomers.filter((c) => c.kycStatus === "PENDING").length,
-    rejected: allCustomers.filter((c) => c.kycStatus === "REJECTED").length,
+    verified: allCustomers.filter((customer) => customer.kycStatus === "VERIFIED").length,
+    pending: allCustomers.filter((customer) => customer.kycStatus === "PENDING").length,
+    rejected: allCustomers.filter((customer) => customer.kycStatus === "REJECTED").length,
   };
+
+  const verifiedRate = stats.total ? Math.round((stats.verified / stats.total) * 100) : 0;
 
   const kycStatusIcons: Record<string, React.ReactNode> = {
     PENDING: <RiTimeLine className="h-3.5 w-3.5" />,
@@ -61,54 +65,76 @@ export default async function CustomersPage() {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="font-heading text-3xl font-bold tracking-tight">Customers</h1>
-          <p className="text-muted-foreground mt-1">
-            Manage customer profiles, KYC verification status, and onboarding.
-          </p>
-        </div>
-        <Link href="/applications/new">
-          <Button className="gap-2 press-scale">
-            <RiUserAddLine className="h-4 w-4" />
-            Onboard Customer
-          </Button>
-        </Link>
-      </div>
+    <div className="space-y-8 animate-fade-in">
+      <section className="relative overflow-hidden rounded-3xl border bg-gradient-to-br from-slate-50 via-white to-slate-100 p-6 md:p-8 dark:from-slate-950 dark:via-slate-900 dark:to-slate-900">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -top-16 right-6 h-40 w-40 rounded-full bg-primary/15 blur-3xl"
+        />
+        <div className="relative flex flex-col gap-6">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="space-y-2">
+              <Badge className="w-fit rounded-full bg-primary/10 text-primary border-primary/20">
+                Customer registry
+              </Badge>
+              <h1 className="font-heading text-3xl font-bold tracking-tight">Customers</h1>
+              <p className="text-muted-foreground text-sm max-w-2xl">
+                Manage customer profiles, KYC verification status, and onboarding progress.
+              </p>
+            </div>
+            <Link href="/applications/new">
+              <Button className="gap-2 rounded-xl">
+                <RiUserAddLine className="h-4 w-4" />
+                Onboard customer
+              </Button>
+            </Link>
+          </div>
 
-      <div className="grid gap-4 sm:grid-cols-4">
-        <Card className="border">
-          <CardContent className="pt-5 pb-4">
-            <p className="text-sm text-muted-foreground">Total Customers</p>
-            <p className="text-2xl font-heading font-bold mt-1">{stats.total}</p>
-          </CardContent>
-        </Card>
-        <Card className="border">
-          <CardContent className="pt-5 pb-4">
-            <p className="text-sm text-muted-foreground">KYC Verified</p>
-            <p className="text-2xl font-heading font-bold mt-1 text-primary">{stats.verified}</p>
-          </CardContent>
-        </Card>
-        <Card className="border">
-          <CardContent className="pt-5 pb-4">
-            <p className="text-sm text-muted-foreground">KYC Pending</p>
-            <p className="text-2xl font-heading font-bold mt-1 text-warning">{stats.pending}</p>
-          </CardContent>
-        </Card>
-        <Card className="border">
-          <CardContent className="pt-5 pb-4">
-            <p className="text-sm text-muted-foreground">KYC Rejected</p>
-            <p className="text-2xl font-heading font-bold mt-1 text-destructive">{stats.rejected}</p>
-          </CardContent>
-        </Card>
-      </div>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              { label: "Total customers", value: stats.total },
+              { label: "KYC verified", value: stats.verified },
+              { label: "KYC pending", value: stats.pending },
+              { label: "Verified rate", value: `${verifiedRate}%` },
+            ].map((stat) => (
+              <Card key={stat.label} className="bg-card/80">
+                <CardContent className="p-4">
+                  <p className="text-xs text-muted-foreground">{stat.label}</p>
+                  <p className="mt-2 text-2xl font-semibold">{stat.value}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <Card className="border bg-card/80">
+        <CardContent className="p-4 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="relative w-full lg:max-w-xs">
+            <RiSearchLine className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input placeholder="Search customers..." className="pl-9 rounded-xl" />
+          </div>
+          <div className="flex items-center gap-2">
+            <Select defaultValue="all">
+              <SelectTrigger className="h-9 w-[180px] rounded-xl">
+                <SelectValue placeholder="KYC status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All statuses</SelectItem>
+                <SelectItem value="verified">Verified</SelectItem>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="rejected">Rejected</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
 
       {allCustomers.length === 0 ? (
         <Card className="border border-dashed bg-muted/30">
           <CardContent className="py-16">
             <div className="text-center space-y-4">
-              <div className="mx-auto w-14 h-14 bg-primary/10 flex items-center justify-center">
+              <div className="mx-auto w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center">
                 <RiUserLine className="h-7 w-7 text-primary" />
               </div>
               <div>
@@ -118,21 +144,19 @@ export default async function CustomersPage() {
                 </p>
               </div>
               <Link href="/applications/new">
-                <Button className="press-scale">
+                <Button className="press-scale rounded-xl">
                   <RiUserAddLine className="h-4 w-4 mr-2" />
-                  Onboard Customer
+                  Onboard customer
                 </Button>
               </Link>
             </div>
           </CardContent>
         </Card>
       ) : (
-        <Card className="border">
+        <Card className="border bg-card/90">
           <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-base font-medium">All Customers</CardTitle>
-              <Input placeholder="Search customers..." className="w-64" />
-            </div>
+            <CardTitle className="text-base font-medium">All Customers</CardTitle>
+            <CardDescription>Verified identities and KYC progress at a glance.</CardDescription>
           </CardHeader>
           <CardContent className="p-0">
             <Table>
@@ -149,95 +173,98 @@ export default async function CustomersPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {allCustomers.map((customer) => (
-                  <TableRow key={customer.id} className="group">
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-9 w-9">
-                          <AvatarFallback className="bg-primary/10 text-primary font-medium">
-                            {customer.firstName[0]}
-                            {customer.lastName[0]}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <p className="font-medium">
-                            {customer.firstName} {customer.lastName}
+                {allCustomers.map((customer) => {
+                  const initials = `${customer.firstName?.[0] ?? ""}${customer.lastName?.[0] ?? ""}`.toUpperCase();
+
+                  return (
+                    <TableRow key={customer.id} className="group">
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-9 w-9">
+                            <AvatarFallback className="bg-primary/10 text-primary font-medium">
+                              {initials || "NA"}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="font-medium">
+                              {customer.firstName} {customer.lastName}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {customer.employmentType?.replace("_", " ") || "-"}
+                            </p>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="space-y-0.5">
+                          <p className="text-sm flex items-center gap-1.5">
+                            <RiMailLine className="h-3 w-3 text-muted-foreground" />
+                            {customer.email}
                           </p>
-                          <p className="text-xs text-muted-foreground">
-                            {customer.employmentType?.replace("_", " ") || "—"}
+                          <p className="text-sm flex items-center gap-1.5 text-muted-foreground">
+                            <RiPhoneLine className="h-3 w-3" />
+                            {customer.phone}
                           </p>
                         </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="space-y-0.5">
-                        <p className="text-sm flex items-center gap-1.5">
-                          <RiMailLine className="h-3 w-3 text-muted-foreground" />
-                          {customer.email}
-                        </p>
-                        <p className="text-sm flex items-center gap-1.5 text-muted-foreground">
-                          <RiPhoneLine className="h-3 w-3" />
-                          {customer.phone}
-                        </p>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={`gap-1.5 ${getStatusColor(customer.kycStatus)}`}>
-                        {kycStatusIcons[customer.kycStatus]}
-                        {customer.kycStatus}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono text-sm">
-                          {customer.aadhaarNumber ? maskAadhaar(customer.aadhaarNumber) : "—"}
-                        </span>
-                        {customer.aadhaarVerified && (
-                          <RiCheckLine className="h-3.5 w-3.5 text-primary" />
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono text-sm">
-                          {customer.panNumber ? maskPan(customer.panNumber) : "—"}
-                        </span>
-                        {customer.panVerified && (
-                          <RiCheckLine className="h-3.5 w-3.5 text-primary" />
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground text-sm">
-                      {customer.city && customer.state
-                        ? `${customer.city}, ${customer.state}`
-                        : "—"}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground text-sm">
-                      {formatDate(customer.createdAt)}
-                    </TableCell>
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-                          >
-                            <RiMore2Line className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem>
-                            <RiEyeLine className="h-4 w-4 mr-2" /> View Profile
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <RiShieldCheckLine className="h-4 w-4 mr-2" /> Re-verify KYC
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={`gap-1.5 ${getStatusColor(customer.kycStatus)}`}>
+                          {kycStatusIcons[customer.kycStatus]}
+                          {customer.kycStatus}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-sm">
+                            {customer.aadhaarNumber ? maskAadhaar(customer.aadhaarNumber) : "-"}
+                          </span>
+                          {customer.aadhaarVerified && (
+                            <RiCheckLine className="h-3.5 w-3.5 text-primary" />
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-sm">
+                            {customer.panNumber ? maskPan(customer.panNumber) : "-"}
+                          </span>
+                          {customer.panVerified && (
+                            <RiCheckLine className="h-3.5 w-3.5 text-primary" />
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground text-sm">
+                        {customer.city && customer.state
+                          ? `${customer.city}, ${customer.state}`
+                          : "-"}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground text-sm">
+                        {formatDate(customer.createdAt)}
+                      </TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <RiMore2Line className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem>
+                              <RiEyeLine className="h-4 w-4 mr-2" /> View profile
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                              <RiShieldCheckLine className="h-4 w-4 mr-2" /> Re-verify KYC
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </CardContent>

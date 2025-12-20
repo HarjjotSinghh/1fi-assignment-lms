@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   RiDashboardLine,
+  RiLineChartLine,
   RiStackLine,
   RiFileListLine,
   RiMoneyDollarCircleLine,
@@ -35,6 +36,11 @@ const mainNavItems = [
     title: "Dashboard",
     href: "/dashboard",
     icon: RiDashboardLine,
+  },
+  {
+    title: "Analytics",
+    href: "/analytics",
+    icon: RiLineChartLine,
   },
   {
     title: "Loan Products",

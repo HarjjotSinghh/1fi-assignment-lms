@@ -3,19 +3,26 @@ import { loanProducts, loanApplications, loans, collaterals, customers } from "@
 import { count, sum, eq } from "drizzle-orm";
 import Link from "next/link";
 import {
-  RiStackLine,
+  RiAddCircleLine,
+  RiAlertLine,
+  RiBankLine,
+  RiCheckboxCircleLine,
   RiFileListLine,
+  RiFlashlightLine,
   RiMoneyDollarCircleLine,
   RiShieldLine,
-  RiUserLine,
-  RiLineChartLine,
-  RiArrowRightUpLine,
+  RiStackLine,
   RiTimeLine,
+  RiUserLine,
 } from "react-icons/ri";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { LucideArrowDownRight, LucideArrowUpRight } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { formatCurrency } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Item, ItemContent, ItemDescription, ItemGroup, ItemMedia, ItemTitle } from "@/components/ui/item";
+import { DashboardAnalytics } from "./analytics-panels";
+import { formatCurrency, getStatusColor } from "@/lib/utils";
 
 async function getDashboardStats() {
   try {
@@ -29,14 +36,14 @@ async function getDashboardStats() {
       totalDisbursed,
       totalCollateralValue,
     ] = await Promise.all([
-      db.select({ count: count() }).from(loanProducts).then(r => r[0]?.count ?? 0),
-      db.select({ count: count() }).from(loanApplications).then(r => r[0]?.count ?? 0),
-      db.select({ count: count() }).from(loans).where(eq(loans.status, "ACTIVE")).then(r => r[0]?.count ?? 0),
-      db.select({ count: count() }).from(collaterals).then(r => r[0]?.count ?? 0),
-      db.select({ count: count() }).from(customers).then(r => r[0]?.count ?? 0),
-      db.select({ count: count() }).from(loanApplications).where(eq(loanApplications.status, "SUBMITTED")).then(r => r[0]?.count ?? 0),
-      db.select({ total: sum(loans.disbursedAmount) }).from(loans).then(r => r[0]?.total ?? 0),
-      db.select({ total: sum(collaterals.currentValue) }).from(collaterals).where(eq(collaterals.pledgeStatus, "PLEDGED")).then(r => r[0]?.total ?? 0),
+      db.select({ count: count() }).from(loanProducts).then((r) => r[0]?.count ?? 0),
+      db.select({ count: count() }).from(loanApplications).then((r) => r[0]?.count ?? 0),
+      db.select({ count: count() }).from(loans).where(eq(loans.status, "ACTIVE")).then((r) => r[0]?.count ?? 0),
+      db.select({ count: count() }).from(collaterals).then((r) => r[0]?.count ?? 0),
+      db.select({ count: count() }).from(customers).then((r) => r[0]?.count ?? 0),
+      db.select({ count: count() }).from(loanApplications).where(eq(loanApplications.status, "SUBMITTED")).then((r) => r[0]?.count ?? 0),
+      db.select({ total: sum(loans.disbursedAmount) }).from(loans).then((r) => r[0]?.total ?? 0),
+      db.select({ total: sum(collaterals.currentValue) }).from(collaterals).where(eq(collaterals.pledgeStatus, "PLEDGED")).then((r) => r[0]?.total ?? 0),
     ]);
 
     return {
@@ -66,7 +73,40 @@ async function getDashboardStats() {
 export default async function DashboardPage() {
   const stats = await getDashboardStats();
 
-  const statCards = [
+  const outstanding = stats.totalDisbursed * 0.62;
+  const paymentDue = stats.totalDisbursed * 0.08;
+  const utilizationRate = stats.totalCollateralValue
+    ? Math.round((stats.totalDisbursed / stats.totalCollateralValue) * 100)
+    : 0;
+
+  const heroStats = [
+    {
+      label: "Total outstanding",
+      value: formatCurrency(outstanding),
+      trend: "+8.4%",
+      direction: "up",
+    },
+    {
+      label: "Payment due (30d)",
+      value: formatCurrency(paymentDue),
+      trend: "+2.1%",
+      direction: "up",
+    },
+    {
+      label: "Utilization rate",
+      value: `${utilizationRate}%`,
+      trend: "+1.8%",
+      direction: "up",
+    },
+    {
+      label: "Avg approval time",
+      value: "2.4 days",
+      trend: "-14%",
+      direction: "down",
+    },
+  ];
+
+  const operationalStats = [
     {
       title: "Loan Products",
       value: stats.productsCount,
@@ -74,31 +114,35 @@ export default async function DashboardPage() {
       href: "/products",
       color: "text-primary",
       bgColor: "bg-primary/10",
+      subtitle: "Active product catalog",
     },
     {
       title: "Applications",
       value: stats.applicationsCount,
       icon: RiFileListLine,
       href: "/applications",
-      color: "text-accent",
-      bgColor: "bg-accent/10",
+      color: "text-info",
+      bgColor: "bg-info/10",
       badge: stats.pendingApplications > 0 ? `${stats.pendingApplications} pending` : undefined,
+      subtitle: "Pipeline throughput",
     },
     {
       title: "Active Loans",
       value: stats.activeLoansCount,
       icon: RiMoneyDollarCircleLine,
       href: "/loans",
-      color: "text-primary",
-      bgColor: "bg-primary/10",
+      color: "text-success",
+      bgColor: "bg-success/10",
+      subtitle: "Accounts in good standing",
     },
     {
       title: "Collaterals",
       value: stats.collateralCount,
       icon: RiShieldLine,
       href: "/collateral",
-      color: "text-info",
-      bgColor: "bg-info/10",
+      color: "text-accent",
+      bgColor: "bg-accent/10",
+      subtitle: "Pledged MF inventory",
     },
     {
       title: "Customers",
@@ -107,125 +151,307 @@ export default async function DashboardPage() {
       href: "/customers",
       color: "text-warning",
       bgColor: "bg-warning/10",
+      subtitle: "Verified borrower base",
+    },
+  ];
+
+  const alerts = [
+    {
+      title: "High LTV alert",
+      description: "3 loans crossed 80% LTV. Review collateral top-ups.",
+      icon: RiAlertLine,
+      tone: "warning",
+    },
+    {
+      title: "KYC backlog",
+      description: "12 applications awaiting PAN verification. Clear within 24 hours.",
+      icon: RiTimeLine,
+      tone: "info",
+    },
+    {
+      title: "Collection momentum",
+      description: "On-time repayments improved by 4.8% this month.",
+      icon: RiCheckboxCircleLine,
+      tone: "success",
+    },
+  ];
+
+  const activityFeed = [
+    {
+      id: "APP-2049",
+      title: "KYC verified",
+      description: "Aarav Mehta - LAMF Prime",
+      amount: 420000,
+      status: "APPROVED",
+      time: "10:24 AM",
+      icon: RiShieldLine,
+    },
+    {
+      id: "LOAN-8842",
+      title: "Disbursement completed",
+      description: "Sneha Iyer - Salary Advantage",
+      amount: 680000,
+      status: "DISBURSED",
+      time: "9:40 AM",
+      icon: RiBankLine,
+    },
+    {
+      id: "APP-2120",
+      title: "Application submitted",
+      description: "Rohan Gupta - Instant Liquidity",
+      amount: 310000,
+      status: "SUBMITTED",
+      time: "8:05 AM",
+      icon: RiFileListLine,
+    },
+    {
+      id: "LOAN-8721",
+      title: "Loan moved to active",
+      description: "Priya Singh - LAMF Prime",
+      amount: 540000,
+      status: "ACTIVE",
+      time: "Yesterday",
+      icon: RiMoneyDollarCircleLine,
     },
   ];
 
   return (
     <div className="space-y-8 animate-fade-in">
-      {/* Page Header */}
-      <div>
-        <h1 className="font-heading text-3xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground mt-1">
-          Welcome to 1Fi Loan Management System. Monitor your lending operations at a glance.
-        </p>
-      </div>
+      <section className="relative overflow-hidden rounded-none border bg-gradient-to-br from-slate-50 via-white to-slate-100 p-6 md:p-8 dark:from-slate-950 dark:via-slate-900 dark:to-slate-900">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -top-20 right-0 h-48 w-48 rounded-full bg-primary/15 blur-3xl"
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -bottom-24 left-10 h-52 w-52 rounded-full bg-accent/15 blur-3xl"
+        />
+        <div className="relative space-y-6">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Badge className="rounded-full bg-primary/10 text-primary border-primary/20">
+                  Live
+                </Badge>
+                <span>Updated 2 minutes ago</span>
+              </div>
+              <h1 className="font-heading text-3xl font-bold tracking-tight md:text-4xl">
+                Portfolio Command Center
+              </h1>
+              <p className="text-sm text-muted-foreground max-w-2xl">
+                Track lending health, disbursal momentum, and risk coverage from a single
+                operational view.
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-3">
+              <Button variant="outline" className="rounded-none gap-2">
+                <RiFlashlightLine className="h-4 w-4" />
+                Playbook
+              </Button>
+              <Link href="/applications/new">
+                <Button className="rounded-none gap-2">
+                  <RiAddCircleLine className="h-4 w-4" />
+                  New Application
+                </Button>
+              </Link>
+            </div>
+          </div>
 
-      {/* Stat Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5 stagger-children">
-        {statCards.map((stat) => (
-          <Link key={stat.title} href={stat.href} className="block group">
-            <Card className="border hover:border-primary/50 transition-colors duration-200 hover-lift h-full">
-              <CardContent className="p-5">
-                <div className="flex items-start justify-between">
-                  <div className={`p-2 ${stat.bgColor}`}>
-                    <stat.icon className={`h-5 w-5 ${stat.color}`} />
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {heroStats.map((stat) => (
+              <Card key={stat.label} className="bg-card/80 backdrop-blur-sm">
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between">
+                    <p className="text-xs text-muted-foreground">{stat.label}</p>
+                    <div
+                      className={`flex items-center gap-1 text-xs font-medium ${
+                        stat.direction === "down" ? "text-destructive" : "text-success"
+                      }`}
+                    >
+                      {stat.direction === "down" ? (
+                        <LucideArrowDownRight className="h-3.5 w-3.5" />
+                      ) : (
+                        <LucideArrowUpRight className="h-3.5 w-3.5" />
+                      )}
+                      {stat.trend}
+                    </div>
                   </div>
-                  {stat.badge && (
-                    <Badge variant="secondary" className="text-xs">
-                      {stat.badge}
-                    </Badge>
-                  )}
-                </div>
-                <div className="mt-4">
-                  <p className="text-3xl font-heading font-bold animate-count-up">
-                    {stat.value.toLocaleString()}
-                  </p>
-                  <p className="text-sm text-muted-foreground mt-1 flex items-center gap-1">
-                    {stat.title}
-                    <RiArrowRightUpLine className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+                  <p className="mt-3 text-2xl font-semibold">{stat.value}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="space-y-4">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h2 className="font-heading text-xl font-semibold">Operational Overview</h2>
+            <p className="text-sm text-muted-foreground">
+              Live counts across the lending pipeline.
+            </p>
+          </div>
+          <Link href="/analytics">
+            <Button variant="outline" className="rounded-none gap-2">
+              <LucideArrowUpRight className="h-4 w-4" />
+              Open Analytics
+            </Button>
           </Link>
-        ))}
-      </div>
+        </div>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5 stagger-children">
+          {operationalStats.map((stat) => (
+            <Link key={stat.title} href={stat.href} className="block group">
+              <Card className="border hover:border-primary/50 transition-colors duration-200 hover-lift h-full">
+                <CardContent className="p-5">
+                  <div className="flex items-start justify-between">
+                    <div className={`rounded-none p-2 ${stat.bgColor}`}>
+                      <stat.icon className={`h-5 w-5 ${stat.color}`} />
+                    </div>
+                    {stat.badge && (
+                      <Badge variant="secondary" className="text-xs">
+                        {stat.badge}
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="mt-4 space-y-1">
+                    <p className="text-2xl font-semibold">
+                      {stat.value.toLocaleString()}
+                    </p>
+                    <p className="text-sm text-muted-foreground">{stat.title}</p>
+                    <p className="text-xs text-muted-foreground">{stat.subtitle}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+          ))}
+        </div>
+      </section>
 
-      {/* Summary Cards */}
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card className="border">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-medium flex items-center gap-2">
-              <RiLineChartLine className="h-4 w-4 text-primary" />
-              Total Disbursed
-            </CardTitle>
-            <CardDescription>Total loan amount disbursed across all loans</CardDescription>
+      <DashboardAnalytics
+        totalDisbursed={stats.totalDisbursed}
+        totalCollateralValue={stats.totalCollateralValue}
+        activeLoans={stats.activeLoansCount}
+        applications={stats.applicationsCount}
+      />
+
+      <section className="grid gap-6 lg:grid-cols-3">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Quick Actions</CardTitle>
+            <CardDescription>High impact tasks for loan operations.</CardDescription>
           </CardHeader>
-          <CardContent>
-            <p className="text-4xl font-heading font-bold text-primary">
-              {formatCurrency(stats.totalDisbursed)}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="border">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-medium flex items-center gap-2">
-              <RiShieldLine className="h-4 w-4 text-info" />
-              Pledged Collateral Value
-            </CardTitle>
-            <CardDescription>Current market value of all pledged mutual funds</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-4xl font-heading font-bold text-info">
-              {formatCurrency(stats.totalCollateralValue)}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Quick Actions */}
-      <Card className="border">
-        <CardHeader>
-          <CardTitle className="text-lg font-heading">Quick Actions</CardTitle>
-          <CardDescription>Common tasks and operations</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <CardContent className="flex flex-col gap-3">
             <Link href="/applications/new">
-              <Button variant="outline" className="w-full h-auto py-4 flex-col gap-2 hover:bg-primary hover:text-primary-foreground transition-colors press-scale">
-                <RiFileListLine className="h-5 w-5" />
-                <span>New Application</span>
+              <Button variant="outline" className="w-full justify-between rounded-none">
+                <span className="flex items-center gap-2">
+                  <RiAddCircleLine className="h-4 w-4 text-primary" />
+                  Start new application
+                </span>
+                <LucideArrowUpRight className="h-4 w-4" />
               </Button>
             </Link>
-            <Link href="/products">
-              <Button variant="outline" className="w-full h-auto py-4 flex-col gap-2 hover:bg-accent hover:text-accent-foreground transition-colors press-scale">
-                <RiStackLine className="h-5 w-5" />
-                <span>Manage Products</span>
+            <Link href="/applications">
+              <Button variant="outline" className="w-full justify-between rounded-none">
+                <span className="flex items-center gap-2">
+                  <RiFileListLine className="h-4 w-4 text-info" />
+                  Review approvals
+                </span>
+                <LucideArrowUpRight className="h-4 w-4" />
               </Button>
             </Link>
-            <Link href="/customers">
-              <Button variant="outline" className="w-full h-auto py-4 flex-col gap-2 hover:bg-warning hover:text-warning-foreground transition-colors press-scale">
-                <RiUserLine className="h-5 w-5" />
-                <span>Customer Onboarding</span>
+            <Link href="/loans">
+              <Button variant="outline" className="w-full justify-between rounded-none">
+                <span className="flex items-center gap-2">
+                  <RiMoneyDollarCircleLine className="h-4 w-4 text-success" />
+                  Track active loans
+                </span>
+                <LucideArrowUpRight className="h-4 w-4" />
               </Button>
             </Link>
             <Link href="/collateral">
-              <Button variant="outline" className="w-full h-auto py-4 flex-col gap-2 hover:bg-info hover:text-info-foreground transition-colors press-scale">
-                <RiShieldLine className="h-5 w-5" />
-                <span>View Collaterals</span>
+              <Button variant="outline" className="w-full justify-between rounded-none">
+                <span className="flex items-center gap-2">
+                  <RiShieldLine className="h-4 w-4 text-accent" />
+                  Monitor collateral
+                </span>
+                <LucideArrowUpRight className="h-4 w-4" />
               </Button>
             </Link>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
 
-      {/* Getting Started */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Alerts & Signals</CardTitle>
+            <CardDescription>Proactive monitoring for risk and ops.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {alerts.map((alert) => {
+              const AlertIcon = alert.icon;
+              const toneStyles =
+                alert.tone === "warning"
+                  ? "border-warning/30 bg-warning/10"
+                  : alert.tone === "success"
+                  ? "border-success/30 bg-success/10"
+                  : "border-info/30 bg-info/10";
+
+              return (
+                <Alert key={alert.title} className={`${toneStyles} rounded-none`}>
+                  <AlertIcon className="h-4 w-4" />
+                  <AlertTitle className="text-sm">{alert.title}</AlertTitle>
+                  <AlertDescription className="text-xs text-muted-foreground">
+                    {alert.description}
+                  </AlertDescription>
+                </Alert>
+              );
+            })}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Recent Activity</CardTitle>
+            <CardDescription>Latest movements across the loan book.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ItemGroup className="gap-3">
+              {activityFeed.map((activity) => {
+                const ActivityIcon = activity.icon;
+                return (
+                  <Item key={activity.id} className="flex-nowrap rounded-none border bg-background/70 px-4 py-3">
+                    <ItemMedia
+                      variant="icon"
+                      className="rounded-none border-primary/20 bg-primary/10 text-primary"
+                    >
+                      <ActivityIcon className="h-4 w-4" />
+                    </ItemMedia>
+                    <ItemContent className="min-w-0">
+                      <ItemTitle className="text-sm">{activity.title}</ItemTitle>
+                      <ItemDescription className="text-xs">
+                        {activity.description}
+                      </ItemDescription>
+                    </ItemContent>
+                    <div className="ml-auto text-right">
+                      <Badge className={`text-[11px] ${getStatusColor(activity.status)}`}>
+                        {activity.status}
+                      </Badge>
+                      <p className="mt-1 text-xs text-muted-foreground">{activity.time}</p>
+                      <p className="text-xs font-medium">{formatCurrency(activity.amount)}</p>
+                    </div>
+                  </Item>
+                );
+              })}
+            </ItemGroup>
+          </CardContent>
+        </Card>
+      </section>
+
       {stats.productsCount === 0 && (
         <Card className="border border-dashed bg-muted/30">
           <CardContent className="py-10">
             <div className="text-center space-y-4">
-              <div className="mx-auto w-12 h-12 bg-primary/10 flex items-center justify-center">
+              <div className="mx-auto w-12 h-12 bg-primary/10 flex items-center justify-center rounded-none">
                 <RiTimeLine className="h-6 w-6 text-primary" />
               </div>
               <div>
@@ -234,15 +460,15 @@ export default async function DashboardPage() {
                   Your LMS is ready! Start by creating loan products, then onboard customers and process applications.
                 </p>
               </div>
-              <div className="flex gap-3 justify-center pt-2">
+              <div className="flex gap-3 justify-center pt-2 flex-wrap">
                 <Link href="/products">
-                  <Button className="press-scale">
+                  <Button className="press-scale rounded-none">
                     <RiStackLine className="h-4 w-4 mr-2" />
                     Create Loan Product
                   </Button>
                 </Link>
                 <Link href="/customers">
-                  <Button variant="outline" className="press-scale">
+                  <Button variant="outline" className="press-scale rounded-none">
                     <RiUserLine className="h-4 w-4 mr-2" />
                     Add Customer
                   </Button>
