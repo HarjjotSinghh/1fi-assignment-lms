@@ -19,6 +19,15 @@ import { ButtonGroup } from "@/components/ui/button-group";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import {
   Table,
   TableBody,
   TableCell,
@@ -33,7 +42,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Progress } from "@/components/ui/progress";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { buildQueryString, getPaginationItems, getStringParam, type SearchParams } from "@/lib/pagination";
 import { formatCurrency, formatDate, getStatusColor } from "@/lib/utils";
 
 async function getApplications() {
@@ -74,8 +83,67 @@ const statusIcons: Record<string, React.ReactNode> = {
   CANCELLED: <RiCloseLine className="h-3.5 w-3.5" />,
 };
 
-export default async function ApplicationsPage() {
+type ApplicationsPageProps = {
+  searchParams?: SearchParams;
+};
+
+export default async function ApplicationsPage({ searchParams }: ApplicationsPageProps) {
   const applications = await getApplications();
+  const searchQuery = (getStringParam(searchParams?.q) ?? "").trim();
+  const statusFilter = getStringParam(searchParams?.status) ?? "all";
+  const sortBy = getStringParam(searchParams?.sort) ?? "recent";
+  const pageParam = Number(getStringParam(searchParams?.page));
+  const currentPageParam = Number.isFinite(pageParam) && pageParam > 0 ? pageParam : 1;
+  const normalizedQuery = searchQuery.toLowerCase();
+  const pageSize = 8;
+
+  const filteredApplications = applications.filter((app) => {
+    const searchable = [
+      app.applicationNumber,
+      app.customerFirstName,
+      app.customerLastName,
+      app.customerEmail,
+      app.productName,
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+
+    const matchesQuery = !normalizedQuery || searchable.includes(normalizedQuery);
+    const matchesStatus = (() => {
+      if (statusFilter === "all") return true;
+      if (statusFilter === "pending") {
+        return ["SUBMITTED", "UNDER_REVIEW"].includes(app.status);
+      }
+      if (statusFilter === "approved") {
+        return app.status === "APPROVED";
+      }
+      if (statusFilter === "disbursed") {
+        return app.status === "DISBURSED";
+      }
+      return app.status === statusFilter.toUpperCase();
+    })();
+
+    return matchesQuery && matchesStatus;
+  });
+
+  const sortedApplications = [...filteredApplications].sort((a, b) => {
+    if (sortBy === "amount") {
+      return (b.requestedAmount ?? 0) - (a.requestedAmount ?? 0);
+    }
+    if (sortBy === "status") {
+      return a.status.localeCompare(b.status);
+    }
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+  });
+
+  const totalPages = Math.max(1, Math.ceil(sortedApplications.length / pageSize));
+  const currentPage = Math.min(currentPageParam, totalPages);
+  const startIndex = (currentPage - 1) * pageSize;
+  const paginatedApplications = sortedApplications.slice(startIndex, startIndex + pageSize);
+  const pageItems = getPaginationItems(currentPage, totalPages);
+  const startItem = sortedApplications.length === 0 ? 0 : startIndex + 1;
+  const endItem = Math.min(startIndex + pageSize, sortedApplications.length);
 
   const stats = {
     total: applications.length,
@@ -137,36 +205,64 @@ export default async function ApplicationsPage() {
 
       <div className="grid gap-4 lg:grid-cols-[1.4fr_0.6fr]">
         <Card className="border bg-card/80">
-          <CardContent className="p-4 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div className="relative w-full lg:max-w-xs">
-              <RiSearchLine className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Search applications..." className="pl-9 rounded-xl" />
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <ButtonGroup className="rounded-xl border border-input bg-background/80 p-1">
-                <Button variant="ghost" size="sm" className="rounded-lg bg-primary text-primary-foreground">
-                  All
-                </Button>
-                <Button variant="ghost" size="sm" className="rounded-lg text-muted-foreground">
-                  Pending
-                </Button>
-                <Button variant="ghost" size="sm" className="rounded-lg text-muted-foreground">
-                  Approved
-                </Button>
-              </ButtonGroup>
-              <Select defaultValue="recent">
-                <SelectTrigger className="h-9 w-[160px] rounded-xl">
-                  <SelectValue placeholder="Sort by" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="recent">Most recent</SelectItem>
-                  <SelectItem value="amount">Highest amount</SelectItem>
-                  <SelectItem value="status">Status</SelectItem>
-                </SelectContent>
-              </Select>
-              <Button variant="outline" size="icon" className="rounded-xl">
-                <RiFilter3Line className="h-4 w-4" />
-              </Button>
+          <CardContent className="p-4">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <form method="get" className="flex flex-1 flex-col gap-3 lg:flex-row lg:items-center">
+                <input type="hidden" name="page" value="1" />
+                <input type="hidden" name="status" value={statusFilter} />
+                <div className="relative w-full lg:max-w-xs">
+                  <RiSearchLine className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    name="q"
+                    defaultValue={searchQuery}
+                    placeholder="Search applications..."
+                    className="pl-9 rounded-xl"
+                  />
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <ButtonGroup className="rounded-xl border border-input bg-background/80 p-1">
+                    {[
+                      { label: "All", value: "all" },
+                      { label: "Pending", value: "pending" },
+                      { label: "Approved", value: "approved" },
+                      { label: "Disbursed", value: "disbursed" },
+                    ].map((option) => {
+                      const isActive = statusFilter === option.value;
+                      return (
+                        <Button
+                          key={option.value}
+                          variant="ghost"
+                          size="sm"
+                          asChild
+                          aria-pressed={isActive}
+                          className={`rounded-lg ${isActive ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}
+                        >
+                          <Link
+                            href={`/applications${buildQueryString(searchParams, {
+                              status: option.value,
+                              page: 1,
+                            })}`}
+                          >
+                            {option.label}
+                          </Link>
+                        </Button>
+                      );
+                    })}
+                  </ButtonGroup>
+                  <select
+                    name="sort"
+                    defaultValue={sortBy}
+                    className="h-9 w-[160px] rounded-xl border border-input bg-background/80 px-3 text-sm"
+                  >
+                    <option value="recent">Most recent</option>
+                    <option value="amount">Highest amount</option>
+                    <option value="status">Status</option>
+                  </select>
+                  <Button type="submit" variant="outline" size="icon" className="rounded-xl">
+                    <RiFilter3Line className="h-4 w-4" />
+                  </Button>
+                </div>
+              </form>
             </div>
           </CardContent>
         </Card>
@@ -212,6 +308,25 @@ export default async function ApplicationsPage() {
             </div>
           </CardContent>
         </Card>
+      ) : sortedApplications.length === 0 ? (
+        <Card className="border border-dashed bg-muted/30">
+          <CardContent className="py-16">
+            <div className="text-center space-y-4">
+              <div className="mx-auto w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center">
+                <RiSearchLine className="h-7 w-7 text-primary" />
+              </div>
+              <div>
+                <h3 className="font-heading text-lg font-semibold">No matching applications</h3>
+                <p className="text-muted-foreground text-sm mt-1 max-w-sm mx-auto">
+                  Try a different search keyword or reset the status filters.
+                </p>
+              </div>
+              <Button variant="outline" className="rounded-xl" asChild>
+                <Link href="/applications">Clear filters</Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       ) : (
         <Card className="border bg-card/90">
           <CardHeader className="pb-3">
@@ -231,8 +346,8 @@ export default async function ApplicationsPage() {
                   <TableHead className="w-10"></TableHead>
                 </TableRow>
               </TableHeader>
-              <TableBody>
-                {applications.map((app) => (
+              <TableBody className="stagger-children">
+                {paginatedApplications.map((app) => (
                   <TableRow key={app.id} className="group">
                     <TableCell className="font-mono text-sm">
                       {app.applicationNumber.slice(0, 16)}...
@@ -285,6 +400,51 @@ export default async function ApplicationsPage() {
                 ))}
               </TableBody>
             </Table>
+            <div className="flex flex-col gap-3 border-t p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="text-xs text-muted-foreground">
+                Showing {startItem}-{endItem} of {sortedApplications.length} applications
+              </div>
+              {totalPages > 1 && (
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious
+                        href={`/applications${buildQueryString(searchParams, {
+                          page: Math.max(1, currentPage - 1),
+                        })}`}
+                        aria-disabled={currentPage === 1}
+                        className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                      />
+                    </PaginationItem>
+                    {pageItems.map((item, index) =>
+                      item === "ellipsis" ? (
+                        <PaginationItem key={`ellipsis-${index}`}>
+                          <PaginationEllipsis />
+                        </PaginationItem>
+                      ) : (
+                        <PaginationItem key={item}>
+                          <PaginationLink
+                            href={`/applications${buildQueryString(searchParams, { page: item })}`}
+                            isActive={item === currentPage}
+                          >
+                            {item}
+                          </PaginationLink>
+                        </PaginationItem>
+                      )
+                    )}
+                    <PaginationItem>
+                      <PaginationNext
+                        href={`/applications${buildQueryString(searchParams, {
+                          page: Math.min(totalPages, currentPage + 1),
+                        })}`}
+                        aria-disabled={currentPage === totalPages}
+                        className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              )}
+            </div>
           </CardContent>
         </Card>
       )}

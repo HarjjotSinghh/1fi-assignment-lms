@@ -17,8 +17,18 @@ import {
 } from "react-icons/ri";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ButtonGroup } from "@/components/ui/button-group";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 import {
   Table,
   TableBody,
@@ -34,7 +44,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { buildQueryString, getPaginationItems, getStringParam, type SearchParams } from "@/lib/pagination";
 import { formatDate, getStatusColor, maskPan, maskAadhaar } from "@/lib/utils";
 
 async function getCustomers() {
@@ -45,8 +55,61 @@ async function getCustomers() {
   }
 }
 
-export default async function CustomersPage() {
+type CustomersPageProps = {
+  searchParams?: SearchParams;
+};
+
+export default async function CustomersPage({ searchParams }: CustomersPageProps) {
   const allCustomers = await getCustomers();
+  const searchQuery = (getStringParam(searchParams?.q) ?? "").trim();
+  const statusFilter = getStringParam(searchParams?.status) ?? "all";
+  const sortBy = getStringParam(searchParams?.sort) ?? "recent";
+  const pageParam = Number(getStringParam(searchParams?.page));
+  const currentPageParam = Number.isFinite(pageParam) && pageParam > 0 ? pageParam : 1;
+  const normalizedQuery = searchQuery.toLowerCase();
+  const pageSize = 8;
+
+  const filteredCustomers = allCustomers.filter((customer) => {
+    const searchable = [
+      customer.firstName,
+      customer.lastName,
+      customer.email,
+      customer.phone,
+      customer.city,
+      customer.state,
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+    const matchesQuery = !normalizedQuery || searchable.includes(normalizedQuery);
+    const matchesStatus = (() => {
+      if (statusFilter === "all") return true;
+      if (statusFilter === "verified") return customer.kycStatus === "VERIFIED";
+      if (statusFilter === "pending") {
+        return ["PENDING", "IN_PROGRESS"].includes(customer.kycStatus);
+      }
+      if (statusFilter === "rejected") return customer.kycStatus === "REJECTED";
+      return customer.kycStatus === statusFilter.toUpperCase();
+    })();
+    return matchesQuery && matchesStatus;
+  });
+
+  const sortedCustomers = [...filteredCustomers].sort((a, b) => {
+    if (sortBy === "name") {
+      const nameA = `${a.firstName ?? ""} ${a.lastName ?? ""}`.trim();
+      const nameB = `${b.firstName ?? ""} ${b.lastName ?? ""}`.trim();
+      return nameA.localeCompare(nameB);
+    }
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+  });
+
+  const totalPages = Math.max(1, Math.ceil(sortedCustomers.length / pageSize));
+  const currentPage = Math.min(currentPageParam, totalPages);
+  const startIndex = (currentPage - 1) * pageSize;
+  const paginatedCustomers = sortedCustomers.slice(startIndex, startIndex + pageSize);
+  const pageItems = getPaginationItems(currentPage, totalPages);
+  const startItem = sortedCustomers.length === 0 ? 0 : startIndex + 1;
+  const endItem = Math.min(startIndex + pageSize, sortedCustomers.length);
 
   const stats = {
     total: allCustomers.length,
@@ -109,23 +172,63 @@ export default async function CustomersPage() {
       </section>
 
       <Card className="border bg-card/80">
-        <CardContent className="p-4 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="relative w-full lg:max-w-xs">
-            <RiSearchLine className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Search customers..." className="pl-9 rounded-xl" />
-          </div>
-          <div className="flex items-center gap-2">
-            <Select defaultValue="all">
-              <SelectTrigger className="h-9 w-[180px] rounded-xl">
-                <SelectValue placeholder="KYC status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All statuses</SelectItem>
-                <SelectItem value="verified">Verified</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="rejected">Rejected</SelectItem>
-              </SelectContent>
-            </Select>
+        <CardContent className="p-4">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <form method="get" className="flex flex-1 flex-col gap-3 lg:flex-row lg:items-center">
+              <input type="hidden" name="page" value="1" />
+              <input type="hidden" name="status" value={statusFilter} />
+              <div className="relative w-full lg:max-w-xs">
+                <RiSearchLine className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  name="q"
+                  defaultValue={searchQuery}
+                  placeholder="Search customers..."
+                  className="pl-9 rounded-xl"
+                />
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <ButtonGroup className="rounded-xl border border-input bg-background/80 p-1">
+                  {[
+                    { label: "All", value: "all" },
+                    { label: "Verified", value: "verified" },
+                    { label: "Pending", value: "pending" },
+                    { label: "Rejected", value: "rejected" },
+                  ].map((option) => {
+                    const isActive = statusFilter === option.value;
+                    return (
+                      <Button
+                        key={option.value}
+                        variant="ghost"
+                        size="sm"
+                        asChild
+                        aria-pressed={isActive}
+                        className={`rounded-lg ${isActive ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}
+                      >
+                        <Link
+                          href={`/customers${buildQueryString(searchParams, {
+                            status: option.value,
+                            page: 1,
+                          })}`}
+                        >
+                          {option.label}
+                        </Link>
+                      </Button>
+                    );
+                  })}
+                </ButtonGroup>
+                <select
+                  name="sort"
+                  defaultValue={sortBy}
+                  className="h-9 w-[160px] rounded-xl border border-input bg-background/80 px-3 text-sm"
+                >
+                  <option value="recent">Most recent</option>
+                  <option value="name">Alphabetical</option>
+                </select>
+                <Button type="submit" variant="outline" size="icon" className="rounded-xl">
+                  <RiSearchLine className="h-4 w-4" />
+                </Button>
+              </div>
+            </form>
           </div>
         </CardContent>
       </Card>
@@ -152,6 +255,25 @@ export default async function CustomersPage() {
             </div>
           </CardContent>
         </Card>
+      ) : sortedCustomers.length === 0 ? (
+        <Card className="border border-dashed bg-muted/30">
+          <CardContent className="py-16">
+            <div className="text-center space-y-4">
+              <div className="mx-auto w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center">
+                <RiSearchLine className="h-7 w-7 text-primary" />
+              </div>
+              <div>
+                <h3 className="font-heading text-lg font-semibold">No matching customers</h3>
+                <p className="text-muted-foreground text-sm mt-1 max-w-sm mx-auto">
+                  Try a different query or reset the KYC filters.
+                </p>
+              </div>
+              <Button variant="outline" className="rounded-xl" asChild>
+                <Link href="/customers">Clear filters</Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       ) : (
         <Card className="border bg-card/90">
           <CardHeader className="pb-3">
@@ -172,8 +294,8 @@ export default async function CustomersPage() {
                   <TableHead className="w-10"></TableHead>
                 </TableRow>
               </TableHeader>
-              <TableBody>
-                {allCustomers.map((customer) => {
+              <TableBody className="stagger-children">
+                {paginatedCustomers.map((customer) => {
                   const initials = `${customer.firstName?.[0] ?? ""}${customer.lastName?.[0] ?? ""}`.toUpperCase();
 
                   return (
@@ -267,6 +389,51 @@ export default async function CustomersPage() {
                 })}
               </TableBody>
             </Table>
+            <div className="flex flex-col gap-3 border-t p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="text-xs text-muted-foreground">
+                Showing {startItem}-{endItem} of {sortedCustomers.length} customers
+              </div>
+              {totalPages > 1 && (
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious
+                        href={`/customers${buildQueryString(searchParams, {
+                          page: Math.max(1, currentPage - 1),
+                        })}`}
+                        aria-disabled={currentPage === 1}
+                        className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                      />
+                    </PaginationItem>
+                    {pageItems.map((item, index) =>
+                      item === "ellipsis" ? (
+                        <PaginationItem key={`ellipsis-${index}`}>
+                          <PaginationEllipsis />
+                        </PaginationItem>
+                      ) : (
+                        <PaginationItem key={item}>
+                          <PaginationLink
+                            href={`/customers${buildQueryString(searchParams, { page: item })}`}
+                            isActive={item === currentPage}
+                          >
+                            {item}
+                          </PaginationLink>
+                        </PaginationItem>
+                      )
+                    )}
+                    <PaginationItem>
+                      <PaginationNext
+                        href={`/customers${buildQueryString(searchParams, {
+                          page: Math.min(totalPages, currentPage + 1),
+                        })}`}
+                        aria-disabled={currentPage === totalPages}
+                        className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              )}
+            </div>
           </CardContent>
         </Card>
       )}

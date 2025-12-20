@@ -1,6 +1,7 @@
 import { db } from "@/db";
 import { collaterals, customers, loans } from "@/db/schema";
 import { desc, eq } from "drizzle-orm";
+import Link from "next/link";
 import {
   RiArrowDownLine,
   RiArrowUpLine,
@@ -12,6 +13,7 @@ import {
 } from "react-icons/ri";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ButtonGroup } from "@/components/ui/button-group";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -28,7 +30,16 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import { buildQueryString, getPaginationItems, getStringParam, type SearchParams } from "@/lib/pagination";
 import { formatCurrency, getStatusColor } from "@/lib/utils";
 
 async function getCollaterals() {
@@ -49,6 +60,7 @@ async function getCollaterals() {
         pledgeStatus: collaterals.pledgeStatus,
         pledgedAt: collaterals.pledgedAt,
         lastValuationAt: collaterals.lastValuationAt,
+        createdAt: collaterals.createdAt,
         customerFirstName: customers.firstName,
         customerLastName: customers.lastName,
         loanNumber: loans.loanNumber,
@@ -64,8 +76,61 @@ async function getCollaterals() {
   }
 }
 
-export default async function CollateralPage() {
+type CollateralPageProps = {
+  searchParams?: SearchParams;
+};
+
+export default async function CollateralPage({ searchParams }: CollateralPageProps) {
   const allCollaterals = await getCollaterals();
+  const searchQuery = (getStringParam(searchParams?.q) ?? "").trim();
+  const statusFilter = getStringParam(searchParams?.status) ?? "all";
+  const typeFilter = getStringParam(searchParams?.type) ?? "all";
+  const sortBy = getStringParam(searchParams?.sort) ?? "recent";
+  const pageParam = Number(getStringParam(searchParams?.page));
+  const currentPageParam = Number.isFinite(pageParam) && pageParam > 0 ? pageParam : 1;
+  const normalizedQuery = searchQuery.toLowerCase();
+  const pageSize = 8;
+
+  const filteredCollaterals = allCollaterals.filter((collateral) => {
+    const searchable = [
+      collateral.schemeName,
+      collateral.fundName,
+      collateral.amcName,
+      collateral.folioNumber,
+      collateral.customerFirstName,
+      collateral.customerLastName,
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+    const matchesQuery = !normalizedQuery || searchable.includes(normalizedQuery);
+    const matchesStatus =
+      statusFilter === "all" ||
+      collateral.pledgeStatus === statusFilter.toUpperCase();
+    const matchesType =
+      typeFilter === "all" || collateral.schemeType === typeFilter.toUpperCase();
+    return matchesQuery && matchesStatus && matchesType;
+  });
+
+  const sortedCollaterals = [...filteredCollaterals].sort((a, b) => {
+    if (sortBy === "value") {
+      return b.currentValue - a.currentValue;
+    }
+    if (sortBy === "change") {
+      const changeA = a.currentValue - a.purchaseValue;
+      const changeB = b.currentValue - b.purchaseValue;
+      return changeB - changeA;
+    }
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+  });
+
+  const totalPages = Math.max(1, Math.ceil(sortedCollaterals.length / pageSize));
+  const currentPage = Math.min(currentPageParam, totalPages);
+  const startIndex = (currentPage - 1) * pageSize;
+  const paginatedCollaterals = sortedCollaterals.slice(startIndex, startIndex + pageSize);
+  const pageItems = getPaginationItems(currentPage, totalPages);
+  const startItem = sortedCollaterals.length === 0 ? 0 : startIndex + 1;
+  const endItem = Math.min(startIndex + pageSize, sortedCollaterals.length);
 
   const totalPledged = allCollaterals.filter((collateral) => collateral.pledgeStatus === "PLEDGED").length;
   const totalValue = allCollaterals.reduce((sum, collateral) => sum + collateral.currentValue, 0);
@@ -78,6 +143,7 @@ export default async function CollateralPage() {
     DEBT: "bg-info/10 text-info border-info/20",
     HYBRID: "bg-accent/10 text-accent border-accent/20",
     LIQUID: "bg-muted text-muted-foreground",
+    UNKNOWN: "bg-muted text-muted-foreground",
   };
 
   return (
@@ -126,22 +192,77 @@ export default async function CollateralPage() {
       </section>
 
       <Card className="border bg-card/80">
-        <CardContent className="p-4 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="relative w-full lg:max-w-xs">
-            <RiSearchLine className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Search collaterals..." className="pl-9 rounded-xl" />
-          </div>
-          <div className="flex items-center gap-2">
-            <Select defaultValue="pledged">
-              <SelectTrigger className="h-9 w-[180px] rounded-xl">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="pledged">Pledged only</SelectItem>
-                <SelectItem value="released">Released</SelectItem>
-                <SelectItem value="liquidated">Liquidated</SelectItem>
-              </SelectContent>
-            </Select>
+        <CardContent className="p-4">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <form method="get" className="flex flex-1 flex-col gap-3 lg:flex-row lg:items-center">
+              <input type="hidden" name="page" value="1" />
+              <input type="hidden" name="status" value={statusFilter} />
+              <input type="hidden" name="type" value={typeFilter} />
+              <div className="relative w-full lg:max-w-xs">
+                <RiSearchLine className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  name="q"
+                  defaultValue={searchQuery}
+                  placeholder="Search collaterals..."
+                  className="pl-9 rounded-xl"
+                />
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <ButtonGroup className="rounded-xl border border-input bg-background/80 p-1">
+                  {[
+                    { label: "All", value: "all" },
+                    { label: "Pledged", value: "pledged" },
+                    { label: "Pending", value: "pending" },
+                    { label: "Released", value: "released" },
+                    { label: "Liquidated", value: "liquidated" },
+                  ].map((option) => {
+                    const isActive = statusFilter === option.value;
+                    return (
+                      <Button
+                        key={option.value}
+                        variant="ghost"
+                        size="sm"
+                        asChild
+                        aria-pressed={isActive}
+                        className={`rounded-lg ${isActive ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}
+                      >
+                        <Link
+                          href={`/collateral${buildQueryString(searchParams, {
+                            status: option.value,
+                            page: 1,
+                          })}`}
+                        >
+                          {option.label}
+                        </Link>
+                      </Button>
+                    );
+                  })}
+                </ButtonGroup>
+                <select
+                  name="type"
+                  defaultValue={typeFilter}
+                  className="h-9 w-[150px] rounded-xl border border-input bg-background/80 px-3 text-sm"
+                >
+                  <option value="all">All types</option>
+                  <option value="equity">Equity</option>
+                  <option value="debt">Debt</option>
+                  <option value="hybrid">Hybrid</option>
+                  <option value="liquid">Liquid</option>
+                </select>
+                <select
+                  name="sort"
+                  defaultValue={sortBy}
+                  className="h-9 w-[160px] rounded-xl border border-input bg-background/80 px-3 text-sm"
+                >
+                  <option value="recent">Most recent</option>
+                  <option value="value">Highest value</option>
+                  <option value="change">Largest change</option>
+                </select>
+                <Button type="submit" variant="outline" size="icon" className="rounded-xl">
+                  <RiSearchLine className="h-4 w-4" />
+                </Button>
+              </div>
+            </form>
           </div>
         </CardContent>
       </Card>
@@ -159,6 +280,25 @@ export default async function CollateralPage() {
                   Collaterals will appear here when mutual fund units are pledged against loans.
                 </p>
               </div>
+            </div>
+          </CardContent>
+        </Card>
+      ) : sortedCollaterals.length === 0 ? (
+        <Card className="border border-dashed bg-muted/30">
+          <CardContent className="py-16">
+            <div className="text-center space-y-4">
+              <div className="mx-auto w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center">
+                <RiSearchLine className="h-7 w-7 text-primary" />
+              </div>
+              <div>
+                <h3 className="font-heading text-lg font-semibold">No matching collaterals</h3>
+                <p className="text-muted-foreground text-sm mt-1 max-w-sm mx-auto">
+                  Update your search or filters to locate specific pledged assets.
+                </p>
+              </div>
+              <Button variant="outline" className="rounded-xl" asChild>
+                <Link href="/collateral">Clear filters</Link>
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -183,12 +323,13 @@ export default async function CollateralPage() {
                   <TableHead className="w-10"></TableHead>
                 </TableRow>
               </TableHeader>
-              <TableBody>
-                {allCollaterals.map((collateral) => {
+              <TableBody className="stagger-children">
+                {paginatedCollaterals.map((collateral) => {
                   const change = collateral.currentValue - collateral.purchaseValue;
                   const changePercent = collateral.purchaseValue
                     ? (change / collateral.purchaseValue) * 100
                     : 0;
+                  const schemeClass = schemeTypeColors[collateral.schemeType] ?? schemeTypeColors.UNKNOWN;
 
                   return (
                     <TableRow key={collateral.id} className="group">
@@ -207,7 +348,7 @@ export default async function CollateralPage() {
                         {collateral.customerFirstName} {collateral.customerLastName}
                       </TableCell>
                       <TableCell>
-                        <Badge className={`${schemeTypeColors[collateral.schemeType]} text-xs`}>
+                        <Badge className={`${schemeClass} text-xs`}>
                           {collateral.schemeType}
                         </Badge>
                       </TableCell>
@@ -263,6 +404,51 @@ export default async function CollateralPage() {
                 })}
               </TableBody>
             </Table>
+            <div className="flex flex-col gap-3 border-t p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="text-xs text-muted-foreground">
+                Showing {startItem}-{endItem} of {sortedCollaterals.length} collaterals
+              </div>
+              {totalPages > 1 && (
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious
+                        href={`/collateral${buildQueryString(searchParams, {
+                          page: Math.max(1, currentPage - 1),
+                        })}`}
+                        aria-disabled={currentPage === 1}
+                        className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                      />
+                    </PaginationItem>
+                    {pageItems.map((item, index) =>
+                      item === "ellipsis" ? (
+                        <PaginationItem key={`ellipsis-${index}`}>
+                          <PaginationEllipsis />
+                        </PaginationItem>
+                      ) : (
+                        <PaginationItem key={item}>
+                          <PaginationLink
+                            href={`/collateral${buildQueryString(searchParams, { page: item })}`}
+                            isActive={item === currentPage}
+                          >
+                            {item}
+                          </PaginationLink>
+                        </PaginationItem>
+                      )
+                    )}
+                    <PaginationItem>
+                      <PaginationNext
+                        href={`/collateral${buildQueryString(searchParams, {
+                          page: Math.min(totalPages, currentPage + 1),
+                        })}`}
+                        aria-disabled={currentPage === totalPages}
+                        className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              )}
+            </div>
           </CardContent>
         </Card>
       )}
