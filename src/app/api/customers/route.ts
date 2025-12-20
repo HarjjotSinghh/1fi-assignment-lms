@@ -63,8 +63,8 @@ export async function POST(request: Request) {
                     monthlyIncome: monthlyIncome || null,
                     companyName: companyName || null,
                     kycStatus,
-                    aadhaarNumber: aadhaarNumber || existingCustomer[0].aadhaarNumber,
-                    panNumber: panNumber || existingCustomer[0].panNumber,
+                    aadhaarNumber: aadhaarNumber ? String(aadhaarNumber) : existingCustomer[0].aadhaarNumber,
+                    panNumber: panNumber ? String(panNumber) : existingCustomer[0].panNumber,
                     aadhaarVerified: isAadhaarVerified || existingCustomer[0].aadhaarVerified,
                     panVerified: isPanVerified || existingCustomer[0].panVerified,
                     updatedAt: new Date().toISOString(),
@@ -79,7 +79,39 @@ export async function POST(request: Request) {
             });
         }
 
+        // Check for duplicate Aadhaar/PAN before creation
+        if (aadhaarNumber) {
+            const existingAadhaar = await db
+                .select()
+                .from(customers)
+                .where(eq(customers.aadhaarNumber, aadhaarNumber))
+                .limit(1);
+
+            if (existingAadhaar.length > 0) {
+                return NextResponse.json(
+                    { error: "Aadhaar number already registered with another account" },
+                    { status: 400 }
+                );
+            }
+        }
+
+        if (panNumber) {
+            const existingPan = await db
+                .select()
+                .from(customers)
+                .where(eq(customers.panNumber, panNumber))
+                .limit(1);
+
+            if (existingPan.length > 0) {
+                return NextResponse.json(
+                    { error: "PAN number already registered with another account" },
+                    { status: 400 }
+                );
+            }
+        }
+
         // Create new customer
+
         const newCustomer = await db
             .insert(customers)
             .values({
@@ -97,8 +129,8 @@ export async function POST(request: Request) {
                 monthlyIncome: monthlyIncome || null,
                 companyName: companyName || null,
                 kycStatus,
-                aadhaarNumber: aadhaarNumber || null,
-                panNumber: panNumber || null,
+                aadhaarNumber: aadhaarNumber ? String(aadhaarNumber) : null,
+                panNumber: panNumber ? String(panNumber) : null,
                 aadhaarVerified: isAadhaarVerified,
                 panVerified: isPanVerified,
             })
