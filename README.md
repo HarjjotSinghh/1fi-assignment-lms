@@ -1,4 +1,4 @@
-# 1Fi LMS - Loan Management System
+# Fiquity Technology - Loan Management System
 
 A modern, full-stack **Loan Management System** for **NBFC** (Non-Banking Financial Company) specializing in **LAMF** (Lending Against Mutual Funds).
 
@@ -166,9 +166,9 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 ```json
 {
   "customer": {
-    "firstName": "John",
-    "lastName": "Doe",
-    "email": "john@example.com",
+    "firstName": "Harjot",
+    "lastName": "Rana",
+    "email": "me@harjot.co",
     "phone": "9876543210",
     "dateOfBirth": "1990-01-15",
     "aadhaarNumber": "123456789012",

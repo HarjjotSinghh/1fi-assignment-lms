@@ -119,7 +119,7 @@ export default function LandingPage() {
             <div className="w-9 h-9 rounded-none bg-primary flex items-center justify-center">
               <RiWallet3Line className="w-5 h-5 text-primary-foreground" />
             </div>
-            <span className="font-heading text-xl font-bold">1Fi LMS</span>
+            <span className="font-heading text-xl font-bold">Fiquity Technology</span>
           </Link>
 
           <div className="hidden md:flex items-center gap-8">
@@ -441,7 +441,7 @@ export default function LandingPage() {
                   Ready to transform your lending operations?
                 </h2>
                 <p className="text-primary-foreground/80">
-                  Activate faster loan cycles, smarter risk decisions, and a unified portfolio view with 1Fi LMS.
+                  Activate faster loan cycles, smarter risk decisions, and a unified portfolio view with Fiquity Technology.
                 </p>
               </div>
               <div className="flex flex-col sm:flex-row items-center gap-4">
@@ -469,7 +469,7 @@ export default function LandingPage() {
                 <div className="w-9 h-9 rounded-none bg-primary flex items-center justify-center">
                   <RiWallet3Line className="w-5 h-5 text-primary-foreground" />
                 </div>
-                <span className="font-heading text-xl font-bold">1Fi LMS</span>
+                <span className="font-heading text-xl font-bold">Fiquity Technology</span>
               </Link>
               <p className="mt-4 text-sm text-muted-foreground">
                 Modern loan management for the digital age.

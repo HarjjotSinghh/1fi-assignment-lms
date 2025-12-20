@@ -311,7 +311,7 @@ export function LoanApplicationForm({ products }: { products: LoanProduct[] }) {
                           <Label htmlFor="firstName">First Name</Label>
                           <Input
                             id="firstName"
-                            placeholder="John"
+                            placeholder="Harjot"
                             value={formData.firstName}
                             onChange={(e) => updateFormData("firstName", e.target.value)}
                             className={cn("transition-all duration-300", focusStyles)}
@@ -321,7 +321,7 @@ export function LoanApplicationForm({ products }: { products: LoanProduct[] }) {
                           <Label htmlFor="lastName">Last Name</Label>
                           <Input
                             id="lastName"
-                            placeholder="Doe"
+                            placeholder="Rana"
                             value={formData.lastName}
                             onChange={(e) => updateFormData("lastName", e.target.value)}
                             className={cn("transition-all duration-300", focusStyles)}
@@ -333,7 +333,7 @@ export function LoanApplicationForm({ products }: { products: LoanProduct[] }) {
                         <Input
                           id="email"
                           type="email"
-                          placeholder="john@example.com"
+                          placeholder="me@harjot.co"
                           value={formData.email}
                           onChange={(e) => updateFormData("email", e.target.value)}
                           className={cn("transition-all duration-300", focusStyles)}

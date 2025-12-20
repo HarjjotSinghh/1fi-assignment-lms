@@ -147,7 +147,7 @@ export function AppSidebar({ userRole, userEmail }: AppSidebarProps) {
           </div>
           <div className="flex flex-col">
             <span className="font-heading text-lg font-bold tracking-tight text-sidebar-foreground">
-              1Fi LMS
+              Fiquity Technology
             </span>
             <span className="text-xs text-sidebar-foreground/60 font-mono">
               Lending System

@@ -51,7 +51,7 @@ export default function RegisterPage() {
             <div className="w-10 h-10 rounded-none bg-white/10 flex items-center justify-center">
               <RiWallet3Line className="w-5 h-5 text-white" />
             </div>
-            <span className="font-heading text-2xl font-bold">1Fi LMS</span>
+            <span className="font-heading text-2xl font-bold">Fiquity Technology</span>
           </Link>
         </div>
 
@@ -85,7 +85,7 @@ export default function RegisterPage() {
         </motion.div>
 
         <p className="relative z-10 text-sm text-white/60">
-          Copyright {new Date().getFullYear()} 1Fi LMS. All rights reserved.
+          Copyright {new Date().getFullYear()} Fiquity Technology. All rights reserved.
         </p>
       </div>
 
@@ -95,7 +95,7 @@ export default function RegisterPage() {
             <div className="w-9 h-9 rounded-none bg-primary flex items-center justify-center">
               <RiWallet3Line className="w-5 h-5 text-primary-foreground" />
             </div>
-            <span className="font-heading text-xl font-bold">1Fi LMS</span>
+            <span className="font-heading text-xl font-bold">Fiquity Technology</span>
           </Link>
           <ThemeToggle />
         </div>
@@ -136,7 +136,7 @@ export default function RegisterPage() {
                         id="name"
                         name="name"
                         type="text"
-                        placeholder="Aarav Mehta"
+                        placeholder="Harjot Rana"
                         className="pl-10 h-11 rounded-none"
                         required
                       />

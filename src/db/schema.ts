@@ -18,6 +18,8 @@ export const users = sqliteTable("users", {
     password: text("password"), // Hashed password for credentials auth
     image: text("image"),
     role: text("role").notNull().default("USER"), // ADMIN, USER, MANAGER
+    onboardingCompleted: integer("onboarding_completed", { mode: "boolean" }).default(false),
+    onboardingCompletedAt: text("onboarding_completed_at"),
     createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
     updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
 });

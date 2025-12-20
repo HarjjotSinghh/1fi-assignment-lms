@@ -1,9 +1,10 @@
+import { Suspense } from "react";
 import { Metadata } from "next";
 import { OnboardingForm } from "./onboarding-form";
 
 export const metadata: Metadata = {
-  title: "Complete Your Profile | 1Fi LMS",
-  description: "Complete your profile and verify your identity to get started with 1Fi LMS.",
+  title: "Complete Your Profile | Fiquity Technology",
+  description: "Complete your profile and verify your identity to get started with Fiquity Technology.",
 };
 
 export default function OnboardingPage() {
@@ -24,14 +25,22 @@ export default function OnboardingPage() {
             Complete Your Profile
           </h1>
           <p className="text-muted-foreground max-w-2xl">
-            Set up your profile to unlock the full potential of 1Fi LMS. 
+            Set up your profile to unlock the full potential of Fiquity Technology. 
             KYC verification is optional now but required for loan applications.
           </p>
         </div>
       </div>
 
       {/* Onboarding Form */}
-      <OnboardingForm />
+      <Suspense
+        fallback={
+          <div className="flex items-center justify-center p-12">
+            <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+          </div>
+        }
+      >
+        <OnboardingForm />
+      </Suspense>
     </div>
   );
 }

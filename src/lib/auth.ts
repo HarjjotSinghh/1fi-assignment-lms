@@ -58,15 +58,20 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                     name: user.name,
                     role: user.role,
                     image: user.image,
+                    onboardingCompleted: user.onboardingCompleted || false,
                 };
             },
         }),
     ],
     callbacks: {
-        async jwt({ token, user }) {
+        async jwt({ token, user, trigger, session }) {
             if (user) {
                 token.id = user.id;
                 token.role = (user as { role?: string }).role || "USER";
+                token.onboardingCompleted = (user as any).onboardingCompleted;
+            }
+            if (trigger === "update" && session && session.onboardingCompleted !== undefined) {
+                token.onboardingCompleted = session.onboardingCompleted;
             }
             return token;
         },
@@ -74,6 +79,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             if (session.user) {
                 session.user.id = token.id as string;
                 session.user.role = token.role as string;
+                session.user.onboardingCompleted = token.onboardingCompleted as boolean;
             }
             return session;
         },

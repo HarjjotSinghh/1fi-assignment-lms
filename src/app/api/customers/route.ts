@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
-import { db } from "@/db";
+import { db, users } from "@/db";
 import { customers } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { auth } from "@/lib/auth";
 
 export async function POST(request: Request) {
     try {
@@ -88,6 +89,17 @@ export async function POST(request: Request) {
                 kycStatus,
             })
             .returning();
+
+        // Update user's onboarding status if logged in
+        const session = await auth();
+        if (session?.user?.id) {
+            await db.update(users)
+                .set({
+                    onboardingCompleted: true,
+                    onboardingCompletedAt: new Date().toISOString(),
+                })
+                .where(eq(users.id, session.user.id));
+        }
 
         return NextResponse.json({
             success: true,

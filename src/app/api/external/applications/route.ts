@@ -192,7 +192,7 @@ export async function POST(request: NextRequest) {
 // GET - API Documentation
 export async function GET() {
     return NextResponse.json({
-        name: "1Fi LMS External API",
+        name: "Fiquity Technology External API",
         version: "1.0.0",
         description: "API for fintech partners to create loan applications programmatically",
         authentication: {

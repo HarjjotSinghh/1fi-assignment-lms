@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -71,6 +72,7 @@ export function OnboardingForm() {
   const [kycSkipped, setKycSkipped] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { update } = useSession();
 
   // Check if returning from DigiLocker
   const kycVerification = searchParams.get("kyc_verification");
@@ -159,6 +161,9 @@ export function OnboardingForm() {
           : "You can complete KYC later when applying for a loan.",
       });
 
+      // Update session to reflect onboarding completion
+      await update({ onboardingCompleted: true });
+
       router.push("/dashboard");
     } catch (error) {
       toast.error("Failed to create profile", {
@@ -241,21 +246,21 @@ export function OnboardingForm() {
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div className="space-y-2">
                       <Label htmlFor="firstName">First Name *</Label>
-                      <Input id="firstName" placeholder="John" {...form.register("firstName")} />
+                      <Input id="firstName" placeholder="Harjot" {...form.register("firstName")} />
                       {form.formState.errors.firstName && (
                         <p className="text-xs text-destructive">{form.formState.errors.firstName.message}</p>
                       )}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="lastName">Last Name *</Label>
-                      <Input id="lastName" placeholder="Doe" {...form.register("lastName")} />
+                      <Input id="lastName" placeholder="Rana" {...form.register("lastName")} />
                       {form.formState.errors.lastName && (
                         <p className="text-xs text-destructive">{form.formState.errors.lastName.message}</p>
                       )}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="email">Email *</Label>
-                      <Input id="email" type="email" placeholder="john@example.com" {...form.register("email")} />
+                      <Input id="email" type="email" placeholder="me@harjot.co" {...form.register("email")} />
                       {form.formState.errors.email && (
                         <p className="text-xs text-destructive">{form.formState.errors.email.message}</p>
                       )}

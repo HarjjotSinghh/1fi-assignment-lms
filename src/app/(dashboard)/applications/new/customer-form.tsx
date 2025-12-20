@@ -269,18 +269,18 @@ export function CustomerOnboardingForm({ products }: { products: LoanProduct[] }
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div className="space-y-2">
                       <Label htmlFor="firstName">First Name *</Label>
-                      <Input id="firstName" placeholder="John" {...form.register("firstName")} />
+                      <Input id="firstName" placeholder="Harjot" {...form.register("firstName")} />
                       {form.formState.errors.firstName && (
                         <p className="text-xs text-destructive">{form.formState.errors.firstName.message}</p>
                       )}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="lastName">Last Name *</Label>
-                      <Input id="lastName" placeholder="Doe" {...form.register("lastName")} />
+                      <Input id="lastName" placeholder="Rana" {...form.register("lastName")} />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="email">Email *</Label>
-                      <Input id="email" type="email" placeholder="john@example.com" {...form.register("email")} />
+                      <Input id="email" type="email" placeholder="me@harjot.co" {...form.register("email")} />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="phone">Phone Number *</Label>

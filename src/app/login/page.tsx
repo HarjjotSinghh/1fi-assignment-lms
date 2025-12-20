@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -28,7 +28,7 @@ const highlights = [
   { icon: RiStackLine, label: "Modular products", detail: "Dynamic LTV rules" },
 ];
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
@@ -54,7 +54,7 @@ export default function LoginPage() {
             <div className="w-10 h-10 rounded-none bg-white/10 flex items-center justify-center">
               <RiWallet3Line className="w-5 h-5 text-white" />
             </div>
-            <span className="font-heading text-2xl font-bold">1Fi LMS</span>
+            <span className="font-heading text-2xl font-bold">Fiquity Technology</span>
           </Link>
         </div>
 
@@ -68,7 +68,7 @@ export default function LoginPage() {
             Secure access
           </Badge>
           <div>
-            <h1 className="font-heading text-5xl font-bold leading-tight">
+            <h1 className="font-heading text-5xl font-bold leading-tighter text-balance">
               Welcome back to your lending command center.
             </h1>
             <p className="mt-4 text-lg text-white/70">
@@ -83,7 +83,7 @@ export default function LoginPage() {
                     <item.icon className="w-5 h-5 text-white" />
                   </div>
                   <div>
-                    <p className="font-semibold">{item.label}</p>
+                    <p className="font-semibold text-white">{item.label}</p>
                     <p className="text-sm text-white/60">{item.detail}</p>
                   </div>
                 </CardContent>
@@ -93,7 +93,7 @@ export default function LoginPage() {
         </motion.div>
 
         <p className="relative z-10 text-sm text-white/60">
-          Copyright {new Date().getFullYear()} 1Fi LMS. All rights reserved.
+          Copyright {new Date().getFullYear()} Fiquity Technology. All rights reserved.
         </p>
       </div>
 
@@ -103,7 +103,7 @@ export default function LoginPage() {
             <div className="w-9 h-9 rounded-none bg-primary flex items-center justify-center">
               <RiWallet3Line className="w-5 h-5 text-primary-foreground" />
             </div>
-            <span className="font-heading text-xl font-bold">1Fi LMS</span>
+            <span className="font-heading text-xl font-bold">Fiquity Technology</span>
           </Link>
           <ThemeToggle />
         </div>
@@ -226,5 +226,19 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center min-h-screen bg-background">
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+      }
+    >
+      <LoginContent />
+    </Suspense>
   );
 }

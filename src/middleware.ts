@@ -1,6 +1,6 @@
+
+import { auth } from "@/lib/auth";
 import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
-import { getToken } from "next-auth/jwt";
 
 // Role type for middleware
 type Role = "ADMIN" | "MANAGER" | "USER";
@@ -8,20 +8,9 @@ type Role = "ADMIN" | "MANAGER" | "USER";
 // Super admin email - only this user can access /admin routes
 const SUPER_ADMIN_EMAIL = "harjjotsinghh@gmail.com";
 
-// Routes that don't require authentication
-const publicRoutes = ["/", "/login", "/register"];
-
 // Route-role restrictions: minimum role required for each route prefix
 const routeRoleRestrictions: Record<string, Role[]> = {
     "/analytics": ["ADMIN", "MANAGER"],
-    // Products can be viewed by all, but creation/edit is handled at component level
-};
-
-// Role hierarchy for comparison
-const roleHierarchy: Record<Role, number> = {
-    USER: 1,
-    MANAGER: 2,
-    ADMIN: 3,
 };
 
 function hasRoleAccess(userRole: string | undefined, allowedRoles: Role[]): boolean {
@@ -29,93 +18,87 @@ function hasRoleAccess(userRole: string | undefined, allowedRoles: Role[]): bool
     return allowedRoles.includes(userRole as Role);
 }
 
-export async function middleware(request: NextRequest) {
-    const { pathname } = request.nextUrl;
+export default auth((req) => {
+    const isLoggedIn = !!req.auth;
+    const { nextUrl } = req;
+    const pathname = nextUrl.pathname;
+    const user = req.auth?.user;
 
-    // Allow API routes to pass through (they handle their own auth)
-    if (pathname.startsWith("/api/")) {
-        return NextResponse.next();
-    }
-
-    // Allow static files
+    // Static assets and API routes are handled by matcher, but being explicit doesn't hurt
     if (
-        pathname.startsWith("/_next/") ||
-        pathname.includes(".") // files with extensions
+        pathname.startsWith("/api") ||
+        pathname.startsWith("/_next") ||
+        pathname.includes(".")
     ) {
-        return NextResponse.next();
+        return;
     }
 
-    // Check if the current path is public
-    const isPublicRoute = publicRoutes.some((route) =>
-        pathname === route || pathname.startsWith(`${route}/`)
-    );
+    const isAuthPage = pathname.startsWith("/login") || pathname.startsWith("/register");
+    const isOnboardingPage = pathname.startsWith("/onboarding");
+    const isPublicPage = pathname === "/" || isAuthPage;
 
-    // If it's a public route, just continue
-    if (isPublicRoute) {
-        return NextResponse.next();
+    // 1. Not logged in
+    if (!isLoggedIn) {
+        if (!isPublicPage) {
+            // Redirect to login if trying to access protected page
+            let callbackUrl = nextUrl.pathname;
+            if (nextUrl.search) {
+                callbackUrl += nextUrl.search;
+            }
+            return NextResponse.redirect(new URL(`/login?callbackUrl=${encodeURIComponent(callbackUrl)}`, nextUrl));
+        }
+        return;
     }
 
-    try {
-        // Get the token using the secret
-        const token = await getToken({
-            req: request,
-            secret: process.env.AUTH_SECRET,
-        });
+    // 2. Logged in logic
 
-        const isLoggedIn = !!token;
-        const userRole = token?.role as Role | undefined;
-        const userEmail = token?.email as string | undefined;
+    // If accessing auth pages while logged in, redirect to dashboard
+    if (isAuthPage) {
+        return NextResponse.redirect(new URL("/dashboard", nextUrl));
+    }
 
-        // If accessing a protected route without auth, redirect to login
-        if (!isLoggedIn) {
-            const loginUrl = new URL("/login", request.url);
-            loginUrl.searchParams.set("callbackUrl", pathname);
-            return NextResponse.redirect(loginUrl);
+    // 3. Onboarding Check
+    // We use "any" cast because we extended the type but TypeScript in this context might not pick it up instantly 
+    const onboardingCompleted = (user as any)?.onboardingCompleted;
+
+    // If not completed and not on onboarding page, force redirect
+    if (!onboardingCompleted && !isOnboardingPage && pathname !== "/logout") {
+        return NextResponse.redirect(new URL("/onboarding", nextUrl));
+    }
+
+    // Optional: Redirect away from onboarding if completed
+    if (onboardingCompleted && isOnboardingPage) {
+        return NextResponse.redirect(new URL("/dashboard", nextUrl));
+    }
+
+    // 4. Permission Checks (Admin & Roles)
+
+    // Super admin route protection
+    if (pathname.startsWith("/admin")) {
+        if (user?.email !== SUPER_ADMIN_EMAIL) {
+            const dashboardUrl = new URL("/dashboard", nextUrl);
+            dashboardUrl.searchParams.set("error", "unauthorized");
+            return NextResponse.redirect(dashboardUrl);
         }
+    }
 
-        // If logged in and trying to access login/register, redirect to dashboard
-        if (pathname === "/login" || pathname === "/register") {
-            return NextResponse.redirect(new URL("/dashboard", request.url));
-        }
-
-        // Super admin route protection
-        if (pathname.startsWith("/admin")) {
-            if (userEmail !== SUPER_ADMIN_EMAIL) {
-                const dashboardUrl = new URL("/dashboard", request.url);
+    // Check role-based route restrictions
+    for (const [route, allowedRoles] of Object.entries(routeRoleRestrictions)) {
+        if (pathname.startsWith(route)) {
+            if (!hasRoleAccess(user?.role, allowedRoles)) {
+                const dashboardUrl = new URL("/dashboard", nextUrl);
                 dashboardUrl.searchParams.set("error", "unauthorized");
                 return NextResponse.redirect(dashboardUrl);
             }
+            break;
         }
-
-        // Check role-based route restrictions
-        for (const [route, allowedRoles] of Object.entries(routeRoleRestrictions)) {
-            if (pathname.startsWith(route)) {
-                if (!hasRoleAccess(userRole, allowedRoles)) {
-                    // Redirect unauthorized users to dashboard with error message
-                    const dashboardUrl = new URL("/dashboard", request.url);
-                    dashboardUrl.searchParams.set("error", "unauthorized");
-                    return NextResponse.redirect(dashboardUrl);
-                }
-                break;
-            }
-        }
-    } catch (error) {
-        console.error("Middleware error:", error);
-        // On error, allow the request to continue to avoid blocking the app
-        return NextResponse.next();
     }
 
-    return NextResponse.next();
-}
+    // Allow access
+    return;
+});
 
 export const config = {
-    matcher: [
-        /*
-         * Match all request paths except for the ones starting with:
-         * - _next/static (static files)
-         * - _next/image (image optimization files)
-         * - favicon.ico (favicon file)
-         */
-        "/((?!_next/static|_next/image|favicon.ico).*)",
-    ],
+    // Matcher ignoring static files and api
+    matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
 };
