@@ -75,6 +75,7 @@ export function OnboardingForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [kycCompleted, setKycCompleted] = useState(false);
   const [kycSkipped, setKycSkipped] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const { update } = useSession();
@@ -108,6 +109,43 @@ export function OnboardingForm() {
       panNumber: "",
     },
   });
+
+  useEffect(() => {
+    const saved = localStorage.getItem("onboarding-form-data");
+    if (saved) {
+      try {
+        const { step, data } = JSON.parse(saved);
+        if (data) {
+          form.reset({ ...form.getValues(), ...data });
+        }
+        if (typeof step === "number") {
+          setCurrentStep(step);
+        }
+      } catch (error) {
+        console.error("Failed to load saved data", error);
+      }
+    }
+    setIsLoaded(true);
+  }, [form]);
+
+  useEffect(() => {
+    if (!isLoaded) return;
+
+    const saveData = (data: any) => {
+      localStorage.setItem(
+        "onboarding-form-data",
+        JSON.stringify({
+          step: currentStep,
+          data,
+        })
+      );
+    };
+
+    saveData(form.getValues());
+
+    const subscription = form.watch((value) => saveData(value));
+    return () => subscription.unsubscribe();
+  }, [currentStep, isLoaded, form]);
 
   // Fetch verified data if available
   useEffect(() => {
@@ -205,6 +243,7 @@ export function OnboardingForm() {
       // Update session to reflect onboarding completion
       await update({ onboardingCompleted: true });
 
+      localStorage.removeItem("onboarding-form-data");
       router.push("/dashboard");
     } catch (error) {
       toast.error("Failed to create profile", {
