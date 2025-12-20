@@ -451,7 +451,7 @@ export default function LandingPage() {
                   </Button>
                 </Link>
                 <Link href="/api/external/applications">
-                  <Button variant="outline" className="w-full sm:w-auto rounded-none border-primary-foreground/40 text-primary-foreground">
+                  <Button variant="outline" className="w-full sm:w-auto rounded-none border-primary-foreground/40 text-primary-foreground text-black dark:text-white">
                     View API docs
                   </Button>
                 </Link>
