@@ -1,0 +1,314 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Custom LMS Color Palette - Warm, modern, avoiding blue/purple */
+    --background: 0 0% 99%;
+    --foreground: 20 14% 8%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 20 14% 8%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 20 14% 8%;
+
+    /* Primary - Warm Emerald/Teal */
+    --primary: 160 84% 39%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary - Warm Slate */
+    --secondary: 25 5% 95%;
+    --secondary-foreground: 20 14% 8%;
+
+    --muted: 30 6% 94%;
+    --muted-foreground: 25 5% 45%;
+
+    /* Accent - Amber */
+    --accent: 38 92% 50%;
+    --accent-foreground: 20 14% 8%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 30 6% 90%;
+    --input: 30 6% 90%;
+    --ring: 160 84% 39%;
+
+    /* Chart colors - Warm palette */
+    --chart-1: 160 84% 39%;
+    --chart-2: 38 92% 50%;
+    --chart-3: 0 72% 51%;
+    --chart-4: 45 93% 58%;
+    --chart-5: 25 95% 53%;
+
+    /* Zero border radius for sharp corners */
+    --radius: 0px;
+
+    /* Sidebar */
+    --sidebar-background: 20 14% 4%;
+    --sidebar-foreground: 0 0% 95%;
+    --sidebar-primary: 160 84% 39%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 20 14% 10%;
+    --sidebar-accent-foreground: 0 0% 95%;
+    --sidebar-border: 20 14% 15%;
+    --sidebar-ring: 160 84% 39%;
+
+    /* Success/Warning/Info states */
+    --success: 160 84% 39%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 20 14% 8%;
+    --info: 180 60% 45%;
+    --info-foreground: 0 0% 100%;
+  }
+
+  .dark {
+    --background: 20 14% 4%;
+    --foreground: 0 0% 95%;
+
+    --card: 20 14% 6%;
+    --card-foreground: 0 0% 95%;
+
+    --popover: 20 14% 6%;
+    --popover-foreground: 0 0% 95%;
+
+    --primary: 160 84% 45%;
+    --primary-foreground: 20 14% 4%;
+
+    --secondary: 20 14% 12%;
+    --secondary-foreground: 0 0% 95%;
+
+    --muted: 20 14% 12%;
+    --muted-foreground: 25 5% 55%;
+
+    --accent: 38 92% 50%;
+    --accent-foreground: 20 14% 4%;
+
+    --destructive: 0 72% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 20 14% 15%;
+    --input: 20 14% 15%;
+    --ring: 160 84% 45%;
+
+    --chart-1: 160 84% 45%;
+    --chart-2: 38 92% 50%;
+    --chart-3: 0 72% 50%;
+    --chart-4: 45 93% 58%;
+    --chart-5: 25 95% 53%;
+
+    --sidebar-background: 20 14% 4%;
+    --sidebar-foreground: 0 0% 95%;
+    --sidebar-primary: 160 84% 45%;
+    --sidebar-primary-foreground: 20 14% 4%;
+    --sidebar-accent: 20 14% 10%;
+    --sidebar-accent-foreground: 0 0% 95%;
+    --sidebar-border: 20 14% 15%;
+    --sidebar-ring: 160 84% 45%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* No shadows utility - override any shadows */
+  .no-shadow {
+    box-shadow: none !important;
+  }
+
+  /* Sharp corners utility */
+  .sharp {
+    border-radius: 0 !important;
+  }
+
+  /* Glass morphism for futuristic look (without shadow) */
+  .glass {
+    @apply bg-white/80 dark:bg-black/80 backdrop-blur-lg border;
+  }
+
+  /* Gradient text for accent elements */
+  .gradient-text {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent;
+  }
+
+  /* Hover lift animation (no shadow) */
+  .hover-lift {
+    @apply transition-transform duration-200 ease-out;
+  }
+
+  .hover-lift:hover {
+    @apply -translate-y-0.5;
+  }
+
+  /* Micro-interaction: Scale on press */
+  .press-scale {
+    @apply transition-transform duration-100 active:scale-95;
+  }
+
+  /* Status badge styles */
+  .status-pending {
+    @apply bg-warning/10 text-warning border-warning/20;
+  }
+
+  .status-active {
+    @apply bg-success/10 text-success border-success/20;
+  }
+
+  .status-completed {
+    @apply bg-primary/10 text-primary border-primary/20;
+  }
+
+  .status-rejected {
+    @apply bg-destructive/10 text-destructive border-destructive/20;
+  }
+}
+
+/* Custom animations */
+@keyframes slide-in-right {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slide-in-bottom {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes count-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.3s ease-out forwards;
+}
+
+.animate-slide-in-bottom {
+  animation: slide-in-bottom 0.3s ease-out forwards;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.2s ease-out forwards;
+}
+
+.animate-count-up {
+  animation: count-up 0.5s ease-out forwards;
+}
+
+/* Stagger children animations */
+.stagger-children>* {
+  opacity: 0;
+  animation: slide-in-bottom 0.3s ease-out forwards;
+}
+
+.stagger-children>*:nth-child(1) {
+  animation-delay: 0ms;
+}
+
+.stagger-children>*:nth-child(2) {
+  animation-delay: 50ms;
+}
+
+.stagger-children>*:nth-child(3) {
+  animation-delay: 100ms;
+}
+
+.stagger-children>*:nth-child(4) {
+  animation-delay: 150ms;
+}
+
+.stagger-children>*:nth-child(5) {
+  animation-delay: 200ms;
+}
+
+.stagger-children>*:nth-child(6) {
+  animation-delay: 250ms;
+}
+
+.stagger-children>*:nth-child(7) {
+  animation-delay: 300ms;
+}
+
+.stagger-children>*:nth-child(8) {
+  animation-delay: 350ms;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.4);
+}
+
+/* Focus visible styles */
+*:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px hsl(var(--ring)), 0 0 0 4px hsl(var(--background));
+}
+
+/* Selection styling */
+::selection {
+  background: hsl(var(--primary) / 0.2);
+  color: hsl(var(--foreground));
+}
