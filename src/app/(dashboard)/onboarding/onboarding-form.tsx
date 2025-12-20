@@ -82,7 +82,7 @@ export function OnboardingForm() {
   }
 
   const form = useForm<OnboardingFormData>({
-    resolver: zodResolver(onboardingSchema),
+    resolver: zodResolver(onboardingSchema) as any,
     defaultValues: {
       firstName: "",
       lastName: "",

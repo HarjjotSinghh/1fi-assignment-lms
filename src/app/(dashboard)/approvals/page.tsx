@@ -137,7 +137,7 @@ export default async function ApprovalsPage() {
       <section className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="space-y-2">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-primary/10">
+            <div className="p-2 rounded-none bg-primary/10">
               <RiCheckboxCircleLine className="h-6 w-6 text-primary" />
             </div>
             <h1 className="font-heading text-3xl font-bold tracking-tight">Approvals</h1>
@@ -158,7 +158,7 @@ export default async function ApprovalsPage() {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-warning/10">
+              <div className="p-2 rounded-none bg-warning/10">
                 <RiTimeLine className="h-5 w-5 text-warning" />
               </div>
               <div>
@@ -172,7 +172,7 @@ export default async function ApprovalsPage() {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-success/10">
+              <div className="p-2 rounded-none bg-success/10">
                 <RiCheckLine className="h-5 w-5 text-success" />
               </div>
               <div>
@@ -186,7 +186,7 @@ export default async function ApprovalsPage() {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-destructive/10">
+              <div className="p-2 rounded-none bg-destructive/10">
                 <RiCloseLine className="h-5 w-5 text-destructive" />
               </div>
               <div>
@@ -234,7 +234,7 @@ export default async function ApprovalsPage() {
                   {pendingApprovals.map((approval) => (
                     <div key={approval.id} className="p-4 hover:bg-muted/50 transition-colors">
                       <div className="flex items-start gap-4">
-                        <div className={`p-2 rounded-xl ${typeColors[approval.type] || "bg-muted"}`}>
+                        <div className={`p-2 rounded-none ${typeColors[approval.type] || "bg-muted"}`}>
                           {typeIcons[approval.type] || <RiFileListLine className="h-5 w-5" />}
                         </div>
                         <div className="flex-1 min-w-0">
@@ -265,16 +265,16 @@ export default async function ApprovalsPage() {
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
                           {approval.entityId && entityLinks[approval.entityType] && (
-                            <Button variant="outline" size="sm" className="rounded-xl" asChild>
+                            <Button variant="outline" size="sm" className="rounded-none" asChild>
                               <Link href={`${entityLinks[approval.entityType]}/${approval.entityId}`}>
                                 View
                               </Link>
                             </Button>
                           )}
-                          <Button variant="outline" size="sm" className="rounded-xl text-destructive hover:text-destructive">
+                          <Button variant="outline" size="sm" className="rounded-none text-destructive hover:text-destructive">
                             <RiCloseLine className="h-4 w-4" />
                           </Button>
-                          <Button size="sm" className="rounded-xl gap-1">
+                          <Button size="sm" className="rounded-none gap-1">
                             <RiCheckLine className="h-4 w-4" />
                             Approve
                           </Button>
@@ -310,7 +310,7 @@ export default async function ApprovalsPage() {
                 <div className="divide-y">
                   {history.map((item) => (
                     <div key={item.id} className="flex items-center gap-4 p-4">
-                      <div className={`p-2 rounded-xl ${typeColors[item.type] || "bg-muted"}`}>
+                      <div className={`p-2 rounded-none ${typeColors[item.type] || "bg-muted"}`}>
                         {typeIcons[item.type] || <RiFileListLine className="h-5 w-5" />}
                       </div>
                       <div className="flex-1 min-w-0">

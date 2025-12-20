@@ -129,7 +129,7 @@ export default async function ApplicationDetailPage({ params }: ApplicationDetai
       <section className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="flex items-center gap-4">
           <Link href="/applications">
-            <Button variant="ghost" size="icon" className="rounded-xl">
+            <Button variant="ghost" size="icon" className="rounded-none">
               <RiArrowLeftLine className="h-5 w-5" />
             </Button>
           </Link>
@@ -150,11 +150,11 @@ export default async function ApplicationDetailPage({ params }: ApplicationDetai
         </div>
         {isPending && (
           <div className="flex items-center gap-2">
-            <Button variant="outline" className="rounded-xl gap-2 text-destructive hover:text-destructive">
+            <Button variant="outline" className="rounded-none gap-2 text-destructive hover:text-destructive">
               <RiCloseLine className="h-4 w-4" />
               Reject
             </Button>
-            <Button className="rounded-xl gap-2">
+            <Button className="rounded-none gap-2">
               <RiCheckLine className="h-4 w-4" />
               Approve
             </Button>
@@ -167,7 +167,7 @@ export default async function ApplicationDetailPage({ params }: ApplicationDetai
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-primary/10">
+              <div className="p-2 rounded-none bg-primary/10">
                 <RiMoneyDollarCircleLine className="h-5 w-5 text-primary" />
               </div>
               <div>
@@ -181,7 +181,7 @@ export default async function ApplicationDetailPage({ params }: ApplicationDetai
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-success/10">
+              <div className="p-2 rounded-none bg-success/10">
                 <RiCheckLine className="h-5 w-5 text-success" />
               </div>
               <div>
@@ -197,7 +197,7 @@ export default async function ApplicationDetailPage({ params }: ApplicationDetai
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-accent/10">
+              <div className="p-2 rounded-none bg-accent/10">
                 <RiTimeLine className="h-5 w-5 text-accent" />
               </div>
               <div>
@@ -211,7 +211,7 @@ export default async function ApplicationDetailPage({ params }: ApplicationDetai
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-info/10">
+              <div className="p-2 rounded-none bg-info/10">
                 <RiShieldLine className="h-5 w-5 text-info" />
               </div>
               <div>
@@ -315,7 +315,7 @@ export default async function ApplicationDetailPage({ params }: ApplicationDetai
               </Badge>
             </div>
             <Link href={`/customers/${application.customerId}`}>
-              <Button variant="outline" size="sm" className="w-full rounded-xl">
+              <Button variant="outline" size="sm" className="w-full rounded-none">
                 View Profile
               </Button>
             </Link>

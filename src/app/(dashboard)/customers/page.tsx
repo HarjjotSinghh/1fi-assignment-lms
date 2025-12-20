@@ -135,7 +135,7 @@ export default async function CustomersPage({ searchParams }: CustomersPageProps
 
   return (
     <div className="space-y-8 animate-fade-in">
-      <section className="relative overflow-hidden rounded-3xl border bg-gradient-to-br from-slate-50 via-white to-slate-100 p-6 md:p-8 dark:from-slate-950 dark:via-slate-900 dark:to-slate-900">
+      <section className="relative overflow-hidden rounded-none border bg-gradient-to-br from-slate-50 via-white to-slate-100 p-6 md:p-8 dark:from-slate-950 dark:via-slate-900 dark:to-slate-900">
         <div
           aria-hidden="true"
           className="pointer-events-none absolute -top-16 right-6 h-40 w-40 rounded-full bg-primary/15 blur-3xl"
@@ -152,7 +152,7 @@ export default async function CustomersPage({ searchParams }: CustomersPageProps
               </p>
             </div>
             <Link href="/applications/new">
-              <Button className="gap-2 rounded-xl">
+              <Button className="gap-2 rounded-none">
                 <RiUserAddLine className="h-4 w-4" />
                 Onboard customer
               </Button>
@@ -189,11 +189,11 @@ export default async function CustomersPage({ searchParams }: CustomersPageProps
                   name="q"
                   defaultValue={searchQuery}
                   placeholder="Search customers..."
-                  className="pl-9 rounded-xl"
+                  className="pl-9 rounded-none"
                 />
               </div>
               <div className="flex flex-wrap items-center gap-2">
-                <ButtonGroup className="rounded-xl border border-input bg-background/80 p-1">
+                <ButtonGroup className="rounded-none border border-input bg-background/80 p-1">
                   {[
                     { label: "All", value: "all" },
                     { label: "Verified", value: "verified" },
@@ -208,7 +208,7 @@ export default async function CustomersPage({ searchParams }: CustomersPageProps
                         size="sm"
                         asChild
                         aria-pressed={isActive}
-                        className={`rounded-lg ${isActive ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}
+                        className={`rounded-none ${isActive ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}
                       >
                         <Link
                           href={`/customers${buildQueryString(searchParams, {
@@ -225,12 +225,12 @@ export default async function CustomersPage({ searchParams }: CustomersPageProps
                 <select
                   name="sort"
                   defaultValue={sortBy}
-                  className="h-9 w-[160px] rounded-xl border border-input bg-background/80 px-3 text-sm"
+                  className="h-9 w-[160px] rounded-none border border-input bg-background/80 px-3 text-sm"
                 >
                   <option value="recent">Most recent</option>
                   <option value="name">Alphabetical</option>
                 </select>
-                <Button type="submit" variant="outline" size="icon" className="rounded-xl">
+                <Button type="submit" variant="outline" size="icon" className="rounded-none">
                   <RiSearchLine className="h-4 w-4" />
                 </Button>
               </div>
@@ -243,7 +243,7 @@ export default async function CustomersPage({ searchParams }: CustomersPageProps
         <Card className="border border-dashed bg-muted/30">
           <CardContent className="py-16">
             <div className="text-center space-y-4">
-              <div className="mx-auto w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center">
+              <div className="mx-auto w-14 h-14 rounded-none bg-primary/10 flex items-center justify-center">
                 <RiUserLine className="h-7 w-7 text-primary" />
               </div>
               <div>
@@ -253,7 +253,7 @@ export default async function CustomersPage({ searchParams }: CustomersPageProps
                 </p>
               </div>
               <Link href="/applications/new">
-                <Button className="press-scale rounded-xl">
+                <Button className="press-scale rounded-none">
                   <RiUserAddLine className="h-4 w-4 mr-2" />
                   Onboard customer
                 </Button>
@@ -265,7 +265,7 @@ export default async function CustomersPage({ searchParams }: CustomersPageProps
         <Card className="border border-dashed bg-muted/30">
           <CardContent className="py-16">
             <div className="text-center space-y-4">
-              <div className="mx-auto w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center">
+              <div className="mx-auto w-14 h-14 rounded-none bg-primary/10 flex items-center justify-center">
                 <RiSearchLine className="h-7 w-7 text-primary" />
               </div>
               <div>
@@ -274,7 +274,7 @@ export default async function CustomersPage({ searchParams }: CustomersPageProps
                   Try a different query or reset the KYC filters.
                 </p>
               </div>
-              <Button variant="outline" className="rounded-xl" asChild>
+              <Button variant="outline" className="rounded-none" asChild>
                 <Link href="/customers">Clear filters</Link>
               </Button>
             </div>

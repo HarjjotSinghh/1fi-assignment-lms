@@ -284,7 +284,7 @@ export function LoanApplicationForm({ products }: { products: LoanProduct[] }) {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, delay: 0.2 }}
       >
-        <Card className="border shadow-xl rounded-3xl overflow-hidden glassmorphism">
+        <Card className="border shadow-xl rounded-none overflow-hidden glassmorphism">
           <div>
             <AnimatePresence mode="wait">
               <motion.div
@@ -377,7 +377,7 @@ export function LoanApplicationForm({ products }: { products: LoanProduct[] }) {
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-6">
-                      <div className="p-4 bg-primary/5 border border-primary/10 rounded-2xl flex items-start gap-3">
+                      <div className="p-4 bg-primary/5 border border-primary/10 rounded-none flex items-start gap-3">
                         <RiAlertLine className="h-5 w-5 text-primary mt-0.5" />
                         <p className="text-sm text-muted-foreground">
                           Please enter your Aadhaar and PAN details. We'll perform a real-time verification.
@@ -407,7 +407,7 @@ export function LoanApplicationForm({ products }: { products: LoanProduct[] }) {
                             type="button"
                             onClick={() => verifyKYC("aadhaar")}
                             disabled={kycStatus.aadhaar || kycVerifying === "aadhaar" || !validateAadhaar(formData.aadhaarNumber)}
-                            className="rounded-xl min-w-[100px]"
+                            className="rounded-none min-w-[100px]"
                           >
                             {kycVerifying === "aadhaar" ? <RiLoader4Line className="animate-spin" /> : kycStatus.aadhaar ? "Done" : "Verify"}
                           </Button>
@@ -437,7 +437,7 @@ export function LoanApplicationForm({ products }: { products: LoanProduct[] }) {
                             type="button"
                             onClick={() => verifyKYC("pan")}
                             disabled={kycStatus.pan || kycVerifying === "pan" || !validatePan(formData.panNumber)}
-                            className="rounded-xl min-w-[100px]"
+                            className="rounded-none min-w-[100px]"
                           >
                             {kycVerifying === "pan" ? <RiLoader4Line className="animate-spin" /> : kycStatus.pan ? "Done" : "Verify"}
                           </Button>
@@ -548,7 +548,7 @@ export function LoanApplicationForm({ products }: { products: LoanProduct[] }) {
                               />
                               <Label
                                 htmlFor={type.value}
-                                className="flex flex-col items-center justify-between rounded-xl border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary transition-all cursor-pointer"
+                                className="flex flex-col items-center justify-between rounded-none border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary transition-all cursor-pointer"
                               >
                                 <span className="text-sm font-medium">{type.label}</span>
                               </Label>
@@ -646,7 +646,7 @@ export function LoanApplicationForm({ products }: { products: LoanProduct[] }) {
                           value={formData.productId}
                           onValueChange={(v) => updateFormData("productId", v)}
                         >
-                          <SelectTrigger className={cn("rounded-xl h-12", focusStyles)}>
+                          <SelectTrigger className={cn("rounded-none h-12", focusStyles)}>
                             <SelectValue placeholder="Choose a product" />
                           </SelectTrigger>
                           <SelectContent>
@@ -693,7 +693,7 @@ export function LoanApplicationForm({ products }: { products: LoanProduct[] }) {
                       </div>
 
                       {selectedProduct && (
-                        <div className="p-4 bg-muted/50 rounded-2xl border border-dashed border-muted-foreground/20 space-y-2">
+                        <div className="p-4 bg-muted/50 rounded-none border border-dashed border-muted-foreground/20 space-y-2">
                           <div className="flex justify-between text-xs">
                             <span className="text-muted-foreground">LTV Ratio</span>
                             <span className="font-medium">{selectedProduct.maxLtvPercent}%</span>
@@ -716,7 +716,7 @@ export function LoanApplicationForm({ products }: { products: LoanProduct[] }) {
                 variant="outline"
                 onClick={prevStep}
                 disabled={currentStep === 0}
-                className="flex items-center gap-1 rounded-2xl h-11 px-6 border-muted-foreground/20"
+                className="flex items-center gap-1 rounded-none h-11 px-6 border-muted-foreground/20"
               >
                 <RiArrowLeftLine className="h-4 w-4" /> Back
               </Button>
@@ -725,7 +725,7 @@ export function LoanApplicationForm({ products }: { products: LoanProduct[] }) {
                 type="button"
                 onClick={currentStep === steps.length - 1 ? handleSubmit : nextStep}
                 disabled={!isStepValid() || isSubmitting}
-                className="flex items-center gap-1 rounded-2xl h-11 px-8 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/25"
+                className="flex items-center gap-1 rounded-none h-11 px-8 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/25"
               >
                 {isSubmitting ? (
                   <>

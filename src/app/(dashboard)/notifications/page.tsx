@@ -75,7 +75,7 @@ export default async function NotificationsPage() {
       <section className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="space-y-2">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-primary/10">
+            <div className="p-2 rounded-none bg-primary/10">
               <RiNotification3Line className="h-6 w-6 text-primary" />
             </div>
             <h1 className="font-heading text-3xl font-bold tracking-tight">Notifications</h1>
@@ -90,11 +90,11 @@ export default async function NotificationsPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" className="rounded-xl gap-2">
+          <Button variant="outline" className="rounded-none gap-2">
             <RiCheckDoubleLine className="h-4 w-4" />
             Mark all read
           </Button>
-          <Button variant="outline" className="rounded-xl gap-2">
+          <Button variant="outline" className="rounded-none gap-2">
             <RiDeleteBinLine className="h-4 w-4" />
             Clear all
           </Button>
@@ -129,7 +129,7 @@ export default async function NotificationsPage() {
                     !notification.isRead ? "bg-primary/5" : ""
                   }`}
                 >
-                  <div className={`p-2 rounded-xl ${typeColors[notification.type] || "bg-muted"}`}>
+                  <div className={`p-2 rounded-none ${typeColors[notification.type] || "bg-muted"}`}>
                     {typeIcons[notification.type] || <RiInformationLine className="h-5 w-5" />}
                   </div>
                   <div className="flex-1 min-w-0">

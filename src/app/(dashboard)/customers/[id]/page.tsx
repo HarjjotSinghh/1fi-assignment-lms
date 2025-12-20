@@ -131,7 +131,7 @@ export default async function CustomerDetailPage({ params }: CustomerDetailPageP
       <section className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="flex items-center gap-4">
           <Link href="/customers">
-            <Button variant="ghost" size="icon" className="rounded-xl">
+            <Button variant="ghost" size="icon" className="rounded-none">
               <RiArrowLeftLine className="h-5 w-5" />
             </Button>
           </Link>
@@ -154,11 +154,11 @@ export default async function CustomerDetailPage({ params }: CustomerDetailPageP
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" className="rounded-xl gap-2">
+          <Button variant="outline" className="rounded-none gap-2">
             <RiShieldCheckLine className="h-4 w-4" />
             Re-verify KYC
           </Button>
-          <Button variant="outline" className="rounded-xl gap-2" asChild>
+          <Button variant="outline" className="rounded-none gap-2" asChild>
             <a href={`/api/export/customers?id=${id}`}>
               <RiDownloadLine className="h-4 w-4" />
               Export
@@ -172,7 +172,7 @@ export default async function CustomerDetailPage({ params }: CustomerDetailPageP
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-primary/10">
+              <div className="p-2 rounded-none bg-primary/10">
                 <RiFileListLine className="h-5 w-5 text-primary" />
               </div>
               <div>
@@ -186,7 +186,7 @@ export default async function CustomerDetailPage({ params }: CustomerDetailPageP
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-success/10">
+              <div className="p-2 rounded-none bg-success/10">
                 <RiMoneyDollarCircleLine className="h-5 w-5 text-success" />
               </div>
               <div>
@@ -202,7 +202,7 @@ export default async function CustomerDetailPage({ params }: CustomerDetailPageP
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-warning/10">
+              <div className="p-2 rounded-none bg-warning/10">
                 <RiTimeLine className="h-5 w-5 text-warning" />
               </div>
               <div>
@@ -216,7 +216,7 @@ export default async function CustomerDetailPage({ params }: CustomerDetailPageP
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-accent/10">
+              <div className="p-2 rounded-none bg-accent/10">
                 <RiShieldLine className="h-5 w-5 text-accent" />
               </div>
               <div>

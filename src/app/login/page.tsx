@@ -51,7 +51,7 @@ export default function LoginPage() {
 
         <div className="relative z-10">
           <Link href="/" className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-none bg-white/10 flex items-center justify-center">
               <RiWallet3Line className="w-5 h-5 text-white" />
             </div>
             <span className="font-heading text-2xl font-bold">1Fi LMS</span>
@@ -79,7 +79,7 @@ export default function LoginPage() {
             {highlights.map((item) => (
               <Card key={item.label} className="border-white/10 bg-white/5">
                 <CardContent className="p-4 flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-none bg-white/10 flex items-center justify-center">
                     <item.icon className="w-5 h-5 text-white" />
                   </div>
                   <div>
@@ -100,7 +100,7 @@ export default function LoginPage() {
       <div className="flex flex-col">
         <div className="flex items-center justify-between border-b p-6 lg:hidden">
           <Link href="/" className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center">
+            <div className="w-9 h-9 rounded-none bg-primary flex items-center justify-center">
               <RiWallet3Line className="w-5 h-5 text-primary-foreground" />
             </div>
             <span className="font-heading text-xl font-bold">1Fi LMS</span>
@@ -127,13 +127,13 @@ export default function LoginPage() {
             </div>
 
             {registered && (
-              <div className="rounded-2xl border border-primary/20 bg-primary/10 p-4 text-sm text-primary">
+              <div className="rounded-none border border-primary/20 bg-primary/10 p-4 text-sm text-primary">
                 Registration successful. Please sign in with your credentials.
               </div>
             )}
 
             {state?.error && (
-              <div className="rounded-2xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive flex items-center gap-2">
+              <div className="rounded-none border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive flex items-center gap-2">
                 <RiErrorWarningLine className="h-4 w-4" />
                 {state.error}
               </div>
@@ -151,7 +151,7 @@ export default function LoginPage() {
                         name="email"
                         type="email"
                         placeholder="name@company.com"
-                        className="pl-10 h-11 rounded-xl"
+                        className="pl-10 h-11 rounded-none"
                         required
                       />
                     </div>
@@ -174,7 +174,7 @@ export default function LoginPage() {
                         name="password"
                         type="password"
                         placeholder="********"
-                        className="pl-10 h-11 rounded-xl"
+                        className="pl-10 h-11 rounded-none"
                         required
                       />
                     </div>
@@ -185,7 +185,7 @@ export default function LoginPage() {
 
                   <Button
                     type="submit"
-                    className="w-full h-11 text-base font-medium rounded-xl press-scale"
+                    className="w-full h-11 text-base font-medium rounded-none press-scale"
                     disabled={isPending}
                   >
                     {isPending ? (

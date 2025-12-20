@@ -113,7 +113,7 @@ export default function PlaybookPage() {
       <section className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="space-y-2">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-primary/10">
+            <div className="p-2 rounded-none bg-primary/10">
               <RiBookOpenLine className="h-6 w-6 text-primary" />
             </div>
             <h1 className="font-heading text-3xl font-bold tracking-tight">Playbook</h1>
@@ -123,7 +123,7 @@ export default function PlaybookPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" className="rounded-xl gap-2">
+          <Button variant="outline" className="rounded-none gap-2">
             <RiPrinterLine className="h-4 w-4" />
             Print All
           </Button>
@@ -142,7 +142,7 @@ export default function PlaybookPage() {
               <Button
                 key={action.href}
                 variant="outline"
-                className="justify-start gap-2 h-auto py-3 rounded-xl"
+                className="justify-start gap-2 h-auto py-3 rounded-none"
                 asChild
               >
                 <Link href={action.href}>
@@ -162,7 +162,7 @@ export default function PlaybookPage() {
             <CardHeader>
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
-                  <div className={`p-2 rounded-xl ${workflow.iconColor}`}>
+                  <div className={`p-2 rounded-none ${workflow.iconColor}`}>
                     {workflow.icon}
                   </div>
                   <div>
@@ -210,11 +210,11 @@ export default function PlaybookPage() {
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-4">
-            <Button variant="outline" className="gap-2 rounded-xl">
+            <Button variant="outline" className="gap-2 rounded-none">
               <RiPhoneLine className="h-4 w-4" />
               Call Support
             </Button>
-            <Button variant="outline" className="gap-2 rounded-xl">
+            <Button variant="outline" className="gap-2 rounded-none">
               <RiMailLine className="h-4 w-4" />
               Email Support
             </Button>

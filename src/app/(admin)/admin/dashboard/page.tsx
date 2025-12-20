@@ -69,7 +69,7 @@ export default async function AdminDashboardPage() {
           <div className="space-y-1">
             <div className="flex items-center gap-3">
               <Link href="/dashboard">
-                <Button variant="ghost" size="icon" className="rounded-xl">
+                <Button variant="ghost" size="icon" className="rounded-none">
                   <RiArrowLeftLine className="h-5 w-5" />
                 </Button>
               </Link>
@@ -99,7 +99,7 @@ export default async function AdminDashboardPage() {
             <Card key={stat.label} className="bg-card/80">
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-xl bg-primary/10">
+                  <div className="p-2 rounded-none bg-primary/10">
                     <stat.icon className="h-5 w-5 text-primary" />
                   </div>
                   <div>

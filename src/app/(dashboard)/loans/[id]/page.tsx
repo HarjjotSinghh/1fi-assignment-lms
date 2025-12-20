@@ -135,7 +135,7 @@ export default async function LoanDetailPage({ params }: LoanDetailPageProps) {
       <section className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="flex items-center gap-4">
           <Link href="/loans">
-            <Button variant="ghost" size="icon" className="rounded-xl">
+            <Button variant="ghost" size="icon" className="rounded-none">
               <RiArrowLeftLine className="h-5 w-5" />
             </Button>
           </Link>
@@ -152,7 +152,7 @@ export default async function LoanDetailPage({ params }: LoanDetailPageProps) {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" className="rounded-xl gap-2" asChild>
+          <Button variant="outline" className="rounded-none gap-2" asChild>
             <a href={`/api/export/loans?id=${id}`}>
               <RiDownloadLine className="h-4 w-4" />
               Export
@@ -166,7 +166,7 @@ export default async function LoanDetailPage({ params }: LoanDetailPageProps) {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-primary/10">
+              <div className="p-2 rounded-none bg-primary/10">
                 <RiMoneyDollarCircleLine className="h-5 w-5 text-primary" />
               </div>
               <div>
@@ -180,7 +180,7 @@ export default async function LoanDetailPage({ params }: LoanDetailPageProps) {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-warning/10">
+              <div className="p-2 rounded-none bg-warning/10">
                 <RiTimeLine className="h-5 w-5 text-warning" />
               </div>
               <div>
@@ -194,7 +194,7 @@ export default async function LoanDetailPage({ params }: LoanDetailPageProps) {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-accent/10">
+              <div className="p-2 rounded-none bg-accent/10">
                 <RiPercentLine className="h-5 w-5 text-accent" />
               </div>
               <div>
@@ -208,7 +208,7 @@ export default async function LoanDetailPage({ params }: LoanDetailPageProps) {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-success/10">
+              <div className="p-2 rounded-none bg-success/10">
                 <RiCalendarLine className="h-5 w-5 text-success" />
               </div>
               <div>
@@ -295,7 +295,7 @@ export default async function LoanDetailPage({ params }: LoanDetailPageProps) {
               <p className="text-sm text-muted-foreground">{loan.customerPhone}</p>
             </div>
             <Link href={`/customers/${loan.customerId}`}>
-              <Button variant="outline" size="sm" className="w-full rounded-xl">
+              <Button variant="outline" size="sm" className="w-full rounded-none">
                 View Profile
               </Button>
             </Link>

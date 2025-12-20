@@ -123,7 +123,7 @@ export default async function ActivityPage({ searchParams }: ActivityPageProps) 
       <section className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="space-y-2">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-primary/10">
+            <div className="p-2 rounded-none bg-primary/10">
               <RiHistoryLine className="h-6 w-6 text-primary" />
             </div>
             <h1 className="font-heading text-3xl font-bold tracking-tight">Activity Log</h1>
@@ -133,7 +133,7 @@ export default async function ActivityPage({ searchParams }: ActivityPageProps) 
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" className="rounded-xl gap-2" asChild>
+          <Button variant="outline" className="rounded-none gap-2" asChild>
             <a href="/api/audit-logs?format=csv" download>
               <RiDownloadLine className="h-4 w-4" />
               Export logs
@@ -147,7 +147,7 @@ export default async function ActivityPage({ searchParams }: ActivityPageProps) 
         <CardContent className="p-4">
           <form className="flex flex-wrap gap-3">
             <Select name="action" defaultValue={filterAction || "all"}>
-              <SelectTrigger className="w-[180px] rounded-xl">
+              <SelectTrigger className="w-[180px] rounded-none">
                 <SelectValue placeholder="Filter by action" />
               </SelectTrigger>
               <SelectContent>
@@ -164,7 +164,7 @@ export default async function ActivityPage({ searchParams }: ActivityPageProps) 
             </Select>
 
             <Select name="entity" defaultValue={filterEntity || "all"}>
-              <SelectTrigger className="w-[180px] rounded-xl">
+              <SelectTrigger className="w-[180px] rounded-none">
                 <SelectValue placeholder="Filter by entity" />
               </SelectTrigger>
               <SelectContent>
@@ -177,7 +177,7 @@ export default async function ActivityPage({ searchParams }: ActivityPageProps) 
               </SelectContent>
             </Select>
 
-            <Button type="submit" variant="outline" className="rounded-xl gap-2">
+            <Button type="submit" variant="outline" className="rounded-none gap-2">
               <RiFilterLine className="h-4 w-4" />
               Apply filters
             </Button>
@@ -210,7 +210,7 @@ export default async function ActivityPage({ searchParams }: ActivityPageProps) 
                 <div key={log.id} className="flex items-start gap-4 p-4 hover:bg-muted/50 transition-colors">
                   {/* Timeline indicator */}
                   <div className="relative flex flex-col items-center">
-                    <div className={`p-2 rounded-xl ${actionColors[log.action] || "bg-muted"}`}>
+                    <div className={`p-2 rounded-none ${actionColors[log.action] || "bg-muted"}`}>
                       {actionIcons[log.action] || <RiEditLine className="h-4 w-4" />}
                     </div>
                     {index < filteredLogs.length - 1 && (

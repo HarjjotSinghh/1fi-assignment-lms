@@ -90,7 +90,7 @@ export default async function CollateralDetailPage({ params }: CollateralDetailP
       <section className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="flex items-center gap-4">
           <Link href="/collateral">
-            <Button variant="ghost" size="icon" className="rounded-xl">
+            <Button variant="ghost" size="icon" className="rounded-none">
               <RiArrowLeftLine className="h-5 w-5" />
             </Button>
           </Link>
@@ -115,7 +115,7 @@ export default async function CollateralDetailPage({ params }: CollateralDetailP
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-primary/10">
+              <div className="p-2 rounded-none bg-primary/10">
                 <RiMoneyDollarCircleLine className="h-5 w-5 text-primary" />
               </div>
               <div>
@@ -129,7 +129,7 @@ export default async function CollateralDetailPage({ params }: CollateralDetailP
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className={`p-2 rounded-xl ${isPositive ? "bg-success/10" : "bg-destructive/10"}`}>
+              <div className={`p-2 rounded-none ${isPositive ? "bg-success/10" : "bg-destructive/10"}`}>
                 {isPositive ? (
                   <RiArrowUpLine className="h-5 w-5 text-success" />
                 ) : (
@@ -149,7 +149,7 @@ export default async function CollateralDetailPage({ params }: CollateralDetailP
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-accent/10">
+              <div className="p-2 rounded-none bg-accent/10">
                 <RiLineChartLine className="h-5 w-5 text-accent" />
               </div>
               <div>
@@ -163,7 +163,7 @@ export default async function CollateralDetailPage({ params }: CollateralDetailP
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className={`p-2 rounded-xl ${schemeTypeColors[collateral.schemeType] || "bg-muted"}`}>
+              <div className={`p-2 rounded-none ${schemeTypeColors[collateral.schemeType] || "bg-muted"}`}>
                 <RiShieldLine className="h-5 w-5" />
               </div>
               <div>
@@ -262,7 +262,7 @@ export default async function CollateralDetailPage({ params }: CollateralDetailP
                 <p className="text-sm text-muted-foreground">{collateral.customerEmail}</p>
               </div>
               <Link href={`/customers/${collateral.customerId}`}>
-                <Button variant="outline" size="sm" className="w-full rounded-xl">
+                <Button variant="outline" size="sm" className="w-full rounded-none">
                   View Profile
                 </Button>
               </Link>
@@ -336,7 +336,7 @@ export default async function CollateralDetailPage({ params }: CollateralDetailP
                   </div>
                 )}
                 <Link href={`/loans/${collateral.loanId}`}>
-                  <Button variant="outline" size="sm" className="w-full rounded-xl">
+                  <Button variant="outline" size="sm" className="w-full rounded-none">
                     View Loan
                   </Button>
                 </Link>
