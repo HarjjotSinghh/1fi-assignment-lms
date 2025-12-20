@@ -3,16 +3,16 @@ import { loanApplications, customers, loanProducts } from "@/db/schema";
 import { desc, eq } from "drizzle-orm";
 import Link from "next/link";
 import {
-  Plus,
-  FileText,
-  Clock,
-  CheckCircle2,
-  XCircle,
-  Search,
-  Filter,
-  Eye,
-  MoreHorizontal,
-} from "lucide-react";
+  RiAddLine,
+  RiFileListLine,
+  RiTimeLine,
+  RiCheckLine,
+  RiCloseLine,
+  RiSearchLine,
+  RiFilterLine,
+  RiEyeLine,
+  RiMore2Line,
+} from "react-icons/ri";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -62,13 +62,13 @@ async function getApplications() {
 }
 
 const statusIcons: Record<string, React.ReactNode> = {
-  DRAFT: <Clock className="h-3.5 w-3.5" />,
-  SUBMITTED: <Clock className="h-3.5 w-3.5" />,
-  UNDER_REVIEW: <Clock className="h-3.5 w-3.5" />,
-  APPROVED: <CheckCircle2 className="h-3.5 w-3.5" />,
-  REJECTED: <XCircle className="h-3.5 w-3.5" />,
-  DISBURSED: <CheckCircle2 className="h-3.5 w-3.5" />,
-  CANCELLED: <XCircle className="h-3.5 w-3.5" />,
+  DRAFT: <RiTimeLine className="h-3.5 w-3.5" />,
+  SUBMITTED: <RiTimeLine className="h-3.5 w-3.5" />,
+  UNDER_REVIEW: <RiTimeLine className="h-3.5 w-3.5" />,
+  APPROVED: <RiCheckLine className="h-3.5 w-3.5" />,
+  REJECTED: <RiCloseLine className="h-3.5 w-3.5" />,
+  DISBURSED: <RiCheckLine className="h-3.5 w-3.5" />,
+  CANCELLED: <RiCloseLine className="h-3.5 w-3.5" />,
 };
 
 export default async function ApplicationsPage() {
@@ -83,7 +83,6 @@ export default async function ApplicationsPage() {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-heading text-3xl font-bold tracking-tight">Loan Applications</h1>
@@ -93,13 +92,12 @@ export default async function ApplicationsPage() {
         </div>
         <Link href="/applications/new">
           <Button className="gap-2 press-scale">
-            <Plus className="h-4 w-4" />
+            <RiAddLine className="h-4 w-4" />
             New Application
           </Button>
         </Link>
       </div>
 
-      {/* Stats */}
       <div className="grid gap-4 sm:grid-cols-4">
         <Card className="border">
           <CardContent className="pt-5 pb-4">
@@ -116,7 +114,7 @@ export default async function ApplicationsPage() {
         <Card className="border">
           <CardContent className="pt-5 pb-4">
             <p className="text-sm text-muted-foreground">Approved</p>
-            <p className="text-2xl font-heading font-bold mt-1 text-success">{stats.approved}</p>
+            <p className="text-2xl font-heading font-bold mt-1 text-primary">{stats.approved}</p>
           </CardContent>
         </Card>
         <Card className="border">
@@ -127,13 +125,12 @@ export default async function ApplicationsPage() {
         </Card>
       </div>
 
-      {/* Applications Table */}
       {applications.length === 0 ? (
         <Card className="border border-dashed bg-muted/30">
           <CardContent className="py-16">
             <div className="text-center space-y-4">
               <div className="mx-auto w-14 h-14 bg-primary/10 flex items-center justify-center">
-                <FileText className="h-7 w-7 text-primary" />
+                <RiFileListLine className="h-7 w-7 text-primary" />
               </div>
               <div>
                 <h3 className="font-heading text-lg font-semibold">No Applications Yet</h3>
@@ -143,7 +140,7 @@ export default async function ApplicationsPage() {
               </div>
               <Link href="/applications/new">
                 <Button className="press-scale">
-                  <Plus className="h-4 w-4 mr-2" />
+                  <RiAddLine className="h-4 w-4 mr-2" />
                   Create Application
                 </Button>
               </Link>
@@ -157,11 +154,11 @@ export default async function ApplicationsPage() {
               <CardTitle className="text-base font-medium">All Applications</CardTitle>
               <div className="flex items-center gap-2">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <RiSearchLine className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input placeholder="Search applications..." className="pl-9 w-64" />
                 </div>
                 <Button variant="outline" size="icon">
-                  <Filter className="h-4 w-4" />
+                  <RiFilterLine className="h-4 w-4" />
                 </Button>
               </div>
             </div>
@@ -220,12 +217,12 @@ export default async function ApplicationsPage() {
                             size="icon"
                             className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
                           >
-                            <MoreHorizontal className="h-4 w-4" />
+                            <RiMore2Line className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem>
-                            <Eye className="h-4 w-4 mr-2" /> View Details
+                            <RiEyeLine className="h-4 w-4 mr-2" /> View Details
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
