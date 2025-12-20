@@ -380,6 +380,97 @@ export const kycVerifications = sqliteTable("kyc_verifications", {
     customerId: text("customer_id").references(() => customers.id),
 });
 
+// ============================================
+// AUDIT LOGS (Compliance Trail)
+// ============================================
+
+export const auditLogs = sqliteTable("audit_logs", {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+
+    // Action details
+    action: text("action").notNull(), // CREATE, UPDATE, DELETE, APPROVE, REJECT, DISBURSE, EXPORT
+    entityType: text("entity_type").notNull(), // LOAN, APPLICATION, CUSTOMER, COLLATERAL, PRODUCT
+    entityId: text("entity_id"),
+
+    // Description and metadata
+    description: text("description").notNull(),
+    metadata: text("metadata"), // JSON stringified additional data
+
+    // IP and user agent for security
+    ipAddress: text("ip_address"),
+    userAgent: text("user_agent"),
+
+    // Timestamps
+    createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+
+    // Relations
+    userId: text("user_id").references(() => users.id),
+});
+
+// ============================================
+// NOTIFICATIONS
+// ============================================
+
+export const notifications = sqliteTable("notifications", {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+
+    // Notification content
+    type: text("type").notNull(), // ALERT, INFO, SUCCESS, WARNING, ERROR
+    title: text("title").notNull(),
+    message: text("message").notNull(),
+
+    // Status
+    isRead: integer("is_read", { mode: "boolean" }).default(false),
+
+    // Optional link to navigate to
+    link: text("link"),
+
+    // Related entity
+    entityType: text("entity_type"), // LOAN, APPLICATION, CUSTOMER, etc.
+    entityId: text("entity_id"),
+
+    // Timestamps
+    createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+    readAt: text("read_at"),
+
+    // Relations
+    userId: text("user_id").references(() => users.id),
+});
+
+// ============================================
+// APPROVALS WORKFLOW
+// ============================================
+
+export const approvals = sqliteTable("approvals", {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+
+    // Approval type
+    type: text("type").notNull(), // LOAN_APPROVAL, DISBURSEMENT, KYC_OVERRIDE, COLLATERAL_RELEASE
+
+    // Status
+    status: text("status").notNull().default("PENDING"), // PENDING, APPROVED, REJECTED, EXPIRED
+
+    // Related entity
+    entityType: text("entity_type").notNull(), // APPLICATION, LOAN, CUSTOMER
+    entityId: text("entity_id").notNull(),
+
+    // Request details
+    requestedAmount: real("requested_amount"), // For loan approvals
+    notes: text("notes"), // Requester's notes
+
+    // Review details
+    reviewComment: text("review_comment"),
+
+    // Timestamps
+    createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+    expiresAt: text("expires_at"), // Optional expiry for time-sensitive approvals
+    reviewedAt: text("reviewed_at"),
+
+    // Relations
+    requestedById: text("requested_by_id").references(() => users.id),
+    reviewedById: text("reviewed_by_id").references(() => users.id),
+});
+
 // Type exports for insert/select operations
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
@@ -405,3 +496,10 @@ export type Document = typeof documents.$inferSelect;
 export type NewDocument = typeof documents.$inferInsert;
 export type KycVerification = typeof kycVerifications.$inferSelect;
 export type NewKycVerification = typeof kycVerifications.$inferInsert;
+export type AuditLog = typeof auditLogs.$inferSelect;
+export type NewAuditLog = typeof auditLogs.$inferInsert;
+export type Notification = typeof notifications.$inferSelect;
+export type NewNotification = typeof notifications.$inferInsert;
+export type Approval = typeof approvals.$inferSelect;
+export type NewApproval = typeof approvals.$inferInsert;
+

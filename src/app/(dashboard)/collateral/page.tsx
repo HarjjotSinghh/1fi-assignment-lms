@@ -6,6 +6,8 @@ import {
   RiArrowDownLine,
   RiArrowUpLine,
   RiEyeLine,
+  RiExchangeLine,
+  RiLockUnlockLine,
   RiMore2Line,
   RiPieChartLine,
   RiSearchLine,
@@ -27,6 +29,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
@@ -41,6 +44,8 @@ import {
 } from "@/components/ui/pagination";
 import { buildQueryString, getPaginationItems, getStringParam, type SearchParams } from "@/lib/pagination";
 import { formatCurrency, getStatusColor } from "@/lib/utils";
+import { ServerRoleGate } from "@/components/auth/role-gate";
+import { auth } from "@/lib/auth";
 
 async function getCollaterals() {
   try {
@@ -81,6 +86,8 @@ type CollateralPageProps = {
 };
 
 export default async function CollateralPage({ searchParams }: CollateralPageProps) {
+  const session = await auth();
+  const userRole = session?.user?.role;
   const allCollaterals = await getCollaterals();
   const searchQuery = (getStringParam(searchParams?.q) ?? "").trim();
   const statusFilter = getStringParam(searchParams?.status) ?? "all";
@@ -197,7 +204,6 @@ export default async function CollateralPage({ searchParams }: CollateralPagePro
             <form method="get" className="flex flex-1 flex-col gap-3 lg:flex-row lg:items-center">
               <input type="hidden" name="page" value="1" />
               <input type="hidden" name="status" value={statusFilter} />
-              <input type="hidden" name="type" value={typeFilter} />
               <div className="relative w-full lg:max-w-xs">
                 <RiSearchLine className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -390,12 +396,31 @@ export default async function CollateralPage({ searchParams }: CollateralPagePro
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem>
-                              <RiEyeLine className="h-4 w-4 mr-2" /> View details
+                            <DropdownMenuItem asChild>
+                              <Link href={`/collateral/${collateral.id}`}>
+                                <RiEyeLine className="h-4 w-4 mr-2" /> View details
+                              </Link>
                             </DropdownMenuItem>
-                            <DropdownMenuItem>
-                              <RiPieChartLine className="h-4 w-4 mr-2" /> NAV history
+                            <DropdownMenuItem asChild>
+                              <Link href={`/collateral/${collateral.id}#nav-history`}>
+                                <RiPieChartLine className="h-4 w-4 mr-2" /> NAV history
+                              </Link>
                             </DropdownMenuItem>
+                            {collateral.pledgeStatus === "PLEDGED" && (
+                              <>
+                                <ServerRoleGate userRole={userRole} permission="collateral:release">
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem>
+                                    <RiLockUnlockLine className="h-4 w-4 mr-2" /> Release collateral
+                                  </DropdownMenuItem>
+                                </ServerRoleGate>
+                                <ServerRoleGate userRole={userRole} permission="collateral:liquidate">
+                                  <DropdownMenuItem className="text-destructive focus:text-destructive">
+                                    <RiExchangeLine className="h-4 w-4 mr-2" /> Liquidate
+                                  </DropdownMenuItem>
+                                </ServerRoleGate>
+                              </>
+                            )}
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>

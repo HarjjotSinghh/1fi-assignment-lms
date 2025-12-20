@@ -15,6 +15,13 @@
       "when": 1766190888992,
       "tag": "0001_cute_tombstone",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1766206840518,
+      "tag": "0002_next_ink",
+      "breakpoints": true
     }
   ]
 }

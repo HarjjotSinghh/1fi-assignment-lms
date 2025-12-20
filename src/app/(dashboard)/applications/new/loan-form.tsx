@@ -86,16 +86,16 @@ interface LoanFormData {
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
 };
 
 const contentVariants = {
   hidden: { opacity: 0, x: 50 },
-  visible: { opacity: 1, x: 0, transition: { duration: 0.3 } },
-  exit: { opacity: 0, x: -50, transition: { duration: 0.2 } },
+  visible: { opacity: 1, x: 0, transition: { duration: 0.6 } },
+  exit: { opacity: 0, x: -50, transition: { duration: 0.4 } },
 };
 
-const focusStyles = "focus-visible:ring-0 focus-visible:border-primary/10 border-primary/5 transition-all duration-200 ease-in-out";
+const focusStyles = "focus-visible:border-primary/30 focus-visible:ring-1 focus-visible:ring-primary/20 border-primary/10 transition-all duration-200 ease-in-out";
 
 export function LoanApplicationForm({ products }: { products: LoanProduct[] }) {
   const [currentStep, setCurrentStep] = useState(0);
@@ -217,7 +217,7 @@ export function LoanApplicationForm({ products }: { products: LoanProduct[] }) {
         className="mb-12"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
+        transition={{ duration: 0.8 }}
       >
         <div className="flex justify-between relative px-2">
           {/* Progress Bar Background */}
@@ -228,7 +228,7 @@ export function LoanApplicationForm({ products }: { products: LoanProduct[] }) {
             className="absolute top-5 left-0 h-0.5 bg-primary -translate-y-1/2 z-0"
             initial={{ width: 0 }}
             animate={{ width: `${(currentStep / (steps.length - 1)) * 100}%` }}
-            transition={{ duration: 0.3 }}
+            transition={{ duration: 0.6 }}
           />
 
           {steps.map((step, index) => {
@@ -282,7 +282,7 @@ export function LoanApplicationForm({ products }: { products: LoanProduct[] }) {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.2 }}
+        transition={{ duration: 0.8, delay: 0.2 }}
       >
         <Card className="border shadow-xl rounded-3xl overflow-hidden glassmorphism">
           <div>
@@ -752,7 +752,7 @@ export function LoanApplicationForm({ products }: { products: LoanProduct[] }) {
         className="mt-6 text-center text-sm text-muted-foreground"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 0.5, delay: 0.4 }}
+        transition={{ duration: 0.6, delay: 0.4 }}
       >
         Step {currentStep + 1} of {steps.length}: {steps[currentStep].title}
       </motion.div>

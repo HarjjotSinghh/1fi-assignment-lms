@@ -59,7 +59,7 @@ export default function RegisterPage() {
           className="relative z-10 space-y-8"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
+          transition={{ duration: 0.8, delay: 0.1 }}
         >
           <Badge className="w-fit rounded-full border border-white/30 bg-white/10 text-white">
             Launch new lending ops
@@ -72,7 +72,7 @@ export default function RegisterPage() {
               Join teams modernizing LAMF operations with clear visibility and automation.
             </p>
           </div>
-          <div className="grid gap-3">
+          <div className="grid gap-3 stagger-children">
             {benefits.map((benefit) => (
               <div key={benefit} className="flex items-center gap-3 text-sm text-white/80">
                 <div className="h-7 w-7 rounded-full bg-white/10 flex items-center justify-center">
@@ -102,10 +102,10 @@ export default function RegisterPage() {
 
         <div className="flex flex-1 items-center justify-center p-6 lg:p-12">
           <motion.div
-            className="w-full max-w-md space-y-8"
+            className="w-full max-w-md space-y-8 stagger-children"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
+            transition={{ duration: 0.8 }}
           >
             <div className="hidden lg:flex justify-end">
               <ThemeToggle />

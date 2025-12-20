@@ -1,6 +1,6 @@
 import { db } from "@/db";
-import { loanProducts, loanApplications, loans, collaterals, customers } from "@/db/schema";
-import { count, sum, eq } from "drizzle-orm";
+import { loanProducts, loanApplications, loans, collaterals, customers, auditLogs, users } from "@/db/schema";
+import { count, sum, eq, gt, desc, and, or, sql } from "drizzle-orm";
 import Link from "next/link";
 import {
   RiAddCircleLine,
@@ -68,6 +68,139 @@ async function getDashboardStats() {
       totalCollateralValue: 0,
     };
   }
+}
+
+// Get real-time alerts based on database conditions
+async function getDashboardAlerts() {
+  try {
+    const alerts: Array<{
+      title: string;
+      description: string;
+      icon: typeof RiAlertLine;
+      tone: "warning" | "info" | "success";
+    }> = [];
+
+    // Check for high LTV loans (over 55%)
+    const [highLtvLoans] = await db
+      .select({ count: count() })
+      .from(loans)
+      .where(and(eq(loans.status, "ACTIVE"), gt(loans.currentLtv, 55)));
+
+    if ((highLtvLoans?.count ?? 0) > 0) {
+      alerts.push({
+        title: "High LTV loans detected",
+        description: `${highLtvLoans.count} active loans have LTV above 55%. Consider margin calls.`,
+        icon: RiAlertLine,
+        tone: "warning",
+      });
+    }
+
+    // Check pending KYC verifications
+    const [pendingKyc] = await db
+      .select({ count: count() })
+      .from(customers)
+      .where(eq(customers.kycStatus, "PENDING"));
+
+    if ((pendingKyc?.count ?? 0) > 0) {
+      alerts.push({
+        title: "KYC backlog",
+        description: `${pendingKyc.count} customers awaiting KYC verification. Clear within 24 hours.`,
+        icon: RiTimeLine,
+        tone: "info",
+      });
+    }
+
+    // Check pending applications
+    const [pendingApps] = await db
+      .select({ count: count() })
+      .from(loanApplications)
+      .where(eq(loanApplications.status, "SUBMITTED"));
+
+    if ((pendingApps?.count ?? 0) > 0) {
+      alerts.push({
+        title: "Applications pending review",
+        description: `${pendingApps.count} applications awaiting approval decision.`,
+        icon: RiFileListLine,
+        tone: "info",
+      });
+    }
+
+    // Add success alert if no issues
+    if (alerts.length === 0) {
+      alerts.push({
+        title: "All systems healthy",
+        description: "No pending items or alerts at this time.",
+        icon: RiCheckboxCircleLine,
+        tone: "success",
+      });
+    }
+
+    return alerts;
+  } catch {
+    return [];
+  }
+}
+
+// Get recent activity from audit logs
+async function getRecentActivity() {
+  try {
+    const recentLogs = await db
+      .select({
+        id: auditLogs.id,
+        action: auditLogs.action,
+        entityType: auditLogs.entityType,
+        entityId: auditLogs.entityId,
+        description: auditLogs.description,
+        createdAt: auditLogs.createdAt,
+        userName: users.name,
+      })
+      .from(auditLogs)
+      .leftJoin(users, eq(auditLogs.userId, users.id))
+      .orderBy(desc(auditLogs.createdAt))
+      .limit(5);
+
+    return recentLogs.map((log) => ({
+      id: log.entityId || log.id.slice(0, 8),
+      title: log.action.replace("_", " ").toLowerCase().replace(/^\w/, c => c.toUpperCase()),
+      description: log.description,
+      status: log.action,
+      time: formatRelativeTime(log.createdAt),
+      icon: getActivityIcon(log.action),
+    }));
+  } catch {
+    return [];
+  }
+}
+
+function formatRelativeTime(dateString: string): string {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  if (diffMins < 1) return "Just now";
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays === 1) return "Yesterday";
+  return `${diffDays}d ago`;
+}
+
+function getActivityIcon(action: string) {
+  const iconMap: Record<string, typeof RiShieldLine> = {
+    CREATE: RiAddCircleLine,
+    UPDATE: RiFileListLine,
+    DELETE: RiAlertLine,
+    APPROVE: RiCheckboxCircleLine,
+    REJECT: RiAlertLine,
+    DISBURSE: RiBankLine,
+    EXPORT: RiFileListLine,
+    KYC_VERIFY: RiShieldLine,
+    COLLATERAL_PLEDGE: RiShieldLine,
+    PAYMENT_RECEIVED: RiMoneyDollarCircleLine,
+  };
+  return iconMap[action] || RiFileListLine;
 }
 
 export default async function DashboardPage() {
@@ -155,65 +288,11 @@ export default async function DashboardPage() {
     },
   ];
 
-  const alerts = [
-    {
-      title: "High LTV alert",
-      description: "3 loans crossed 80% LTV. Review collateral top-ups.",
-      icon: RiAlertLine,
-      tone: "warning",
-    },
-    {
-      title: "KYC backlog",
-      description: "12 applications awaiting PAN verification. Clear within 24 hours.",
-      icon: RiTimeLine,
-      tone: "info",
-    },
-    {
-      title: "Collection momentum",
-      description: "On-time repayments improved by 4.8% this month.",
-      icon: RiCheckboxCircleLine,
-      tone: "success",
-    },
-  ];
+  // Fetch real alerts from database conditions
+  const alerts = await getDashboardAlerts();
 
-  const activityFeed = [
-    {
-      id: "APP-2049",
-      title: "KYC verified",
-      description: "Aarav Mehta - LAMF Prime",
-      amount: 420000,
-      status: "APPROVED",
-      time: "10:24 AM",
-      icon: RiShieldLine,
-    },
-    {
-      id: "LOAN-8842",
-      title: "Disbursement completed",
-      description: "Sneha Iyer - Salary Advantage",
-      amount: 680000,
-      status: "DISBURSED",
-      time: "9:40 AM",
-      icon: RiBankLine,
-    },
-    {
-      id: "APP-2120",
-      title: "Application submitted",
-      description: "Rohan Gupta - Instant Liquidity",
-      amount: 310000,
-      status: "SUBMITTED",
-      time: "8:05 AM",
-      icon: RiFileListLine,
-    },
-    {
-      id: "LOAN-8721",
-      title: "Loan moved to active",
-      description: "Priya Singh - LAMF Prime",
-      amount: 540000,
-      status: "ACTIVE",
-      time: "Yesterday",
-      icon: RiMoneyDollarCircleLine,
-    },
-  ];
+  // Fetch real activity from audit logs
+  const activityFeed = await getRecentActivity();
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -244,10 +323,12 @@ export default async function DashboardPage() {
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-3">
-              <Button variant="outline" className="rounded-none gap-2">
-                <RiFlashlightLine className="h-4 w-4" />
-                Playbook
-              </Button>
+              <Link href="/playbook">
+                <Button variant="outline" className="rounded-none gap-2">
+                  <RiFlashlightLine className="h-4 w-4" />
+                  Playbook
+                </Button>
+              </Link>
               <Link href="/applications/new">
                 <Button className="rounded-none gap-2">
                   <RiAddCircleLine className="h-4 w-4" />
@@ -257,7 +338,7 @@ export default async function DashboardPage() {
             </div>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 stagger-children">
             {heroStats.map((stat) => (
               <Card key={stat.label} className="bg-card/80 backdrop-blur-sm">
                 <CardContent className="p-4">
@@ -335,13 +416,13 @@ export default async function DashboardPage() {
         applications={stats.applicationsCount}
       />
 
-      <section className="grid gap-6 lg:grid-cols-3">
+      <section className="grid gap-6 lg:grid-cols-3 stagger-children">
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">Quick Actions</CardTitle>
             <CardDescription>High impact tasks for loan operations.</CardDescription>
           </CardHeader>
-          <CardContent className="flex flex-col gap-3">
+          <CardContent className="flex flex-col gap-3 stagger-children">
             <Link href="/applications/new">
               <Button variant="outline" className="w-full justify-between rounded-none">
                 <span className="flex items-center gap-2">
@@ -386,7 +467,7 @@ export default async function DashboardPage() {
             <CardTitle className="text-lg">Alerts & Signals</CardTitle>
             <CardDescription>Proactive monitoring for risk and ops.</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="space-y-3 stagger-children">
             {alerts.map((alert) => {
               const AlertIcon = alert.icon;
               const toneStyles =
@@ -415,7 +496,7 @@ export default async function DashboardPage() {
             <CardDescription>Latest movements across the loan book.</CardDescription>
           </CardHeader>
           <CardContent>
-            <ItemGroup className="gap-3">
+            <ItemGroup className="gap-3 stagger-children">
               {activityFeed.map((activity) => {
                 const ActivityIcon = activity.icon;
                 return (
@@ -434,10 +515,9 @@ export default async function DashboardPage() {
                     </ItemContent>
                     <div className="ml-auto text-right">
                       <Badge className={`text-[11px] ${getStatusColor(activity.status)}`}>
-                        {activity.status}
+                        {activity.status.replace("_", " ")}
                       </Badge>
                       <p className="mt-1 text-xs text-muted-foreground">{activity.time}</p>
-                      <p className="text-xs font-medium">{formatCurrency(activity.amount)}</p>
                     </div>
                   </Item>
                 );

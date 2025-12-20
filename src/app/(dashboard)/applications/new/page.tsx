@@ -34,9 +34,9 @@ export default async function NewApplicationPage() {
         </div>
       </section>
 
-      <div className="grid gap-6 lg:grid-cols-[1.5fr_0.5fr]">
+      <div className="grid gap-6 lg:grid-cols-[1.5fr_0.5fr] stagger-children">
         <LoanApplicationForm products={products} />
-        <div className="space-y-4">
+        <div className="space-y-4 stagger-children">
           <Card className="bg-card/80">
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">

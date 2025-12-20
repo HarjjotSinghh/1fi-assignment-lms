@@ -4,6 +4,8 @@ import { desc } from "drizzle-orm";
 import Link from "next/link";
 import {
   RiCheckLine,
+  RiCloseLine,
+  RiEditLine,
   RiEyeLine,
   RiMailLine,
   RiMore2Line,
@@ -13,7 +15,6 @@ import {
   RiTimeLine,
   RiUserAddLine,
   RiUserLine,
-  RiCloseLine,
 } from "react-icons/ri";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -41,11 +42,14 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { buildQueryString, getPaginationItems, getStringParam, type SearchParams } from "@/lib/pagination";
 import { formatDate, getStatusColor, maskPan, maskAadhaar } from "@/lib/utils";
+import { ServerRoleGate } from "@/components/auth/role-gate";
+import { auth } from "@/lib/auth";
 
 async function getCustomers() {
   try {
@@ -60,6 +64,8 @@ type CustomersPageProps = {
 };
 
 export default async function CustomersPage({ searchParams }: CustomersPageProps) {
+  const session = await auth();
+  const userRole = session?.user?.role;
   const allCustomers = await getCustomers();
   const searchQuery = (getStringParam(searchParams?.q) ?? "").trim();
   const statusFilter = getStringParam(searchParams?.status) ?? "all";
@@ -153,7 +159,7 @@ export default async function CustomersPage({ searchParams }: CustomersPageProps
             </Link>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 stagger-children">
             {[
               { label: "Total customers", value: stats.total },
               { label: "KYC verified", value: stats.verified },
@@ -375,12 +381,22 @@ export default async function CustomersPage({ searchParams }: CustomersPageProps
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem>
-                              <RiEyeLine className="h-4 w-4 mr-2" /> View profile
+                            <DropdownMenuItem asChild>
+                              <Link href={`/customers/${customer.id}`}>
+                                <RiEyeLine className="h-4 w-4 mr-2" /> View profile
+                              </Link>
                             </DropdownMenuItem>
-                            <DropdownMenuItem>
-                              <RiShieldCheckLine className="h-4 w-4 mr-2" /> Re-verify KYC
-                            </DropdownMenuItem>
+                            <ServerRoleGate userRole={userRole} permission="customers:edit">
+                              <DropdownMenuItem>
+                                <RiEditLine className="h-4 w-4 mr-2" /> Edit customer
+                              </DropdownMenuItem>
+                            </ServerRoleGate>
+                            <ServerRoleGate userRole={userRole} permission="customers:kyc_override">
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem>
+                                <RiShieldCheckLine className="h-4 w-4 mr-2" /> KYC override
+                              </DropdownMenuItem>
+                            </ServerRoleGate>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>

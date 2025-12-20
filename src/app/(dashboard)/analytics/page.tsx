@@ -11,6 +11,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { DashboardAnalytics } from "../dashboard/analytics-panels";
 import { formatCurrency } from "@/lib/utils";
 import { LucideArrowDownRight, LucideArrowUpRight } from "lucide-react";
+import { ServerRoleGate } from "@/components/auth/role-gate";
+import { auth } from "@/lib/auth";
 
 async function getAnalyticsStats() {
   try {
@@ -39,6 +41,8 @@ async function getAnalyticsStats() {
 }
 
 export default async function AnalyticsPage() {
+  const session = await auth();
+  const userRole = session?.user?.role;
   const stats = await getAnalyticsStats();
   const outstanding = stats.totalDisbursed * 0.62;
   const defaultRate = 2.1;
@@ -79,19 +83,25 @@ export default async function AnalyticsPage() {
             Deep dive into portfolio performance, origination trends, and repayment health.
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <Button variant="outline" className="rounded-none gap-2">
-            <RiFileChartLine className="h-4 w-4" />
-            Export PDF
-          </Button>
-          <Button className="rounded-none gap-2">
-            <RiDownloadLine className="h-4 w-4" />
-            Download CSV
-          </Button>
-        </div>
+        <ServerRoleGate userRole={userRole} permission="analytics:export">
+          <div className="flex flex-wrap items-center gap-2">
+            <Button variant="outline" className="rounded-none gap-2" asChild>
+              <a href="/api/export/loans" download>
+                <RiFileChartLine className="h-4 w-4" />
+                Export Report
+              </a>
+            </Button>
+            <Button className="rounded-none gap-2" asChild>
+              <a href="/api/export/applications" download>
+                <RiDownloadLine className="h-4 w-4" />
+                Download CSV
+              </a>
+            </Button>
+          </div>
+        </ServerRoleGate>
       </section>
 
-      <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 stagger-children">
         {kpis.map((kpi) => {
           const isNegative = kpi.trend.startsWith("-");
           return (

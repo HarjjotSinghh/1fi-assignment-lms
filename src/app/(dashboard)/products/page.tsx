@@ -4,6 +4,8 @@ import { desc } from "drizzle-orm";
 import Link from "next/link";
 import {
   RiCalendarLine,
+  RiDeleteBinLine,
+  RiEditLine,
   RiEyeLine,
   RiFileChartLine,
   RiMoneyDollarCircleLine,
@@ -20,6 +22,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
@@ -35,6 +38,8 @@ import {
 import { buildQueryString, getPaginationItems, getStringParam, type SearchParams } from "@/lib/pagination";
 import { formatCurrency, formatPercent } from "@/lib/utils";
 import { ProductFormDialog } from "./product-form-dialog";
+import { ServerRoleGate } from "@/components/auth/role-gate";
+import { auth } from "@/lib/auth";
 
 async function getProducts() {
   try {
@@ -49,11 +54,14 @@ type ProductsPageProps = {
 };
 
 export default async function ProductsPage({ searchParams }: ProductsPageProps) {
+  const session = await auth();
+  const userRole = session?.user?.role;
   const products = await getProducts();
-  const searchQuery = (getStringParam(searchParams?.q) ?? "").trim();
-  const statusFilter = getStringParam(searchParams?.status) ?? "all";
-  const sortBy = getStringParam(searchParams?.sort) ?? "recent";
-  const pageParam = Number(getStringParam(searchParams?.page));
+  const {q, status, sort, page} = await searchParams as SearchParams;
+  const searchQuery = (getStringParam(q) ?? "").trim();
+  const statusFilter = getStringParam(status) ?? "all";
+  const sortBy = getStringParam(sort) ?? "recent";
+  const pageParam = Number(getStringParam(page));
   const currentPageParam = Number.isFinite(pageParam) && pageParam > 0 ? pageParam : 1;
   const normalizedQuery = searchQuery.toLowerCase();
   const pageSize = 6;
@@ -117,11 +125,15 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-3">
-              <Button variant="outline" className="rounded-xl gap-2">
-                <RiFileChartLine className="h-4 w-4" />
-                Export
-              </Button>
-              <ProductFormDialog />
+              <ServerRoleGate userRole={userRole} permission="analytics:export">
+                <Button variant="outline" className="rounded-xl gap-2">
+                  <RiFileChartLine className="h-4 w-4" />
+                  Export
+                </Button>
+              </ServerRoleGate>
+              <ServerRoleGate userRole={userRole} permission="products:create">
+                <ProductFormDialog />
+              </ServerRoleGate>
             </div>
           </div>
 
@@ -218,7 +230,9 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
                   Create your first loan product to start accepting applications. Define interest rates, tenure, and LTV parameters.
                 </p>
               </div>
-              <ProductFormDialog />
+              <ServerRoleGate userRole={userRole} permission="products:create">
+                <ProductFormDialog />
+              </ServerRoleGate>
             </div>
           </CardContent>
         </Card>
@@ -273,9 +287,22 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem>
-                            <RiEyeLine className="h-4 w-4 mr-2" /> View details
+                          <DropdownMenuItem asChild>
+                            <Link href={`/products/${product.id}`}>
+                              <RiEyeLine className="h-4 w-4 mr-2" /> View details
+                            </Link>
                           </DropdownMenuItem>
+                          <ServerRoleGate userRole={userRole} permission="products:edit">
+                            <DropdownMenuItem>
+                              <RiEditLine className="h-4 w-4 mr-2" /> Edit product
+                            </DropdownMenuItem>
+                          </ServerRoleGate>
+                          <ServerRoleGate userRole={userRole} permission="products:delete">
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem className="text-destructive focus:text-destructive">
+                              <RiDeleteBinLine className="h-4 w-4 mr-2" /> Delete
+                            </DropdownMenuItem>
+                          </ServerRoleGate>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>

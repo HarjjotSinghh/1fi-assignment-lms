@@ -112,7 +112,7 @@ const stats = [
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background animate-fade-in">
       <nav className="fixed top-0 left-0 right-0 z-50 border-b bg-background/80 backdrop-blur-lg">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3">
@@ -187,7 +187,7 @@ export default function LandingPage() {
                   </Link>
                 </div>
               </div>
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid gap-4 sm:grid-cols-2 stagger-children">
                 {heroCards.map((card) => (
                   <Card key={card.label} className="bg-card/80 backdrop-blur-sm">
                     <CardContent className="p-4">
@@ -218,7 +218,7 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <div className="mt-10 grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="mt-10 grid grid-cols-2 md:grid-cols-4 gap-4 stagger-children">
             {stats.map((stat) => (
               <Card key={stat.label} className="bg-card/70">
                 <CardContent className="p-4 text-center">
@@ -245,7 +245,7 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 stagger-children">
             {capabilities.map((capability) => (
               <Card key={capability.title} className="bg-card/80">
                 <CardContent className="p-6 space-y-3">
@@ -285,7 +285,7 @@ export default function LandingPage() {
             </Link>
           </div>
 
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 stagger-children">
             {workflow.map((item) => (
               <Card key={item.step} className="bg-card/80">
                 <CardContent className="p-6 space-y-4">
@@ -315,7 +315,7 @@ export default function LandingPage() {
             <p className="text-muted-foreground">
               Blend portfolio trends, cohort analytics, and risk signals with export-ready reporting.
             </p>
-            <div className="grid gap-4 sm:grid-cols-3">
+            <div className="grid gap-4 sm:grid-cols-3 stagger-children">
               {insights.map((item) => (
                 <Card key={item.title} className="bg-card/80">
                   <CardContent className="p-4 space-y-2">
@@ -334,7 +334,7 @@ export default function LandingPage() {
               Cohorts, funnels, and product mix all in one dashboard.
             </div>
           </div>
-          <div className="grid gap-4">
+          <div className="grid gap-4 stagger-children">
             <Card className="bg-card/80">
               <CardContent className="p-6 space-y-4">
                 <div className="flex items-center justify-between">
@@ -389,7 +389,7 @@ export default function LandingPage() {
             <p className="text-muted-foreground">
               Role-based access, audit trails, and configurable workflows keep every action compliant.
             </p>
-            <div className="grid gap-3">
+            <div className="grid gap-3 stagger-children">
               {[
                 "Audit logs for every transaction and approval step",
                 "Role-based permissions for credit, ops, and risk teams",
@@ -413,7 +413,7 @@ export default function LandingPage() {
                   <p className="text-xs text-muted-foreground">Built for RBI-aligned reporting</p>
                 </div>
               </div>
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className="grid gap-3 sm:grid-cols-2 stagger-children">
                 <div className="rounded-none border bg-muted/40 p-4">
                   <p className="text-xs text-muted-foreground">Audit coverage</p>
                   <p className="mt-2 text-lg font-semibold">100%</p>
@@ -499,7 +499,7 @@ export default function LandingPage() {
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li className="flex items-center gap-2">
                   <RiBankLine className="h-4 w-4" />
-                  partnerships@1fi.com
+                  partnerships@1fi.in
                 </li>
                 <li className="flex items-center gap-2">
                   <RiCustomerService2Line className="h-4 w-4" />
@@ -511,7 +511,7 @@ export default function LandingPage() {
 
           <div className="mt-12 pt-8 border-t flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-sm text-muted-foreground">
-              Copyright {new Date().getFullYear()} 1Fi LMS. All rights reserved.
+              Copyright {new Date().getFullYear()} Fiquity Technology. All rights reserved.
             </p>
             <div className="flex items-center gap-6 text-sm text-muted-foreground">
               <Link href="#" className="hover:text-foreground transition-colors">Privacy</Link>

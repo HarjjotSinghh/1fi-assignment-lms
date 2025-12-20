@@ -5,13 +5,13 @@ import Link from "next/link";
 import {
   RiAddLine,
   RiCheckLine,
+  RiCloseLine,
   RiEyeLine,
   RiFileListLine,
   RiFilter3Line,
   RiMore2Line,
   RiSearchLine,
   RiTimeLine,
-  RiCloseLine,
 } from "react-icons/ri";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -39,11 +39,14 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Progress } from "@/components/ui/progress";
 import { buildQueryString, getPaginationItems, getStringParam, type SearchParams } from "@/lib/pagination";
 import { formatCurrency, formatDate, getStatusColor } from "@/lib/utils";
+import { ServerRoleGate } from "@/components/auth/role-gate";
+import { auth } from "@/lib/auth";
 
 async function getApplications() {
   try {
@@ -88,6 +91,8 @@ type ApplicationsPageProps = {
 };
 
 export default async function ApplicationsPage({ searchParams }: ApplicationsPageProps) {
+  const session = await auth();
+  const userRole = session?.user?.role;
   const applications = await getApplications();
   const searchQuery = (getStringParam(searchParams?.q) ?? "").trim();
   const statusFilter = getStringParam(searchParams?.status) ?? "all";
@@ -177,12 +182,14 @@ export default async function ApplicationsPage({ searchParams }: ApplicationsPag
                 Track submissions, approvals, and disbursals across every product line.
               </p>
             </div>
-            <Link href="/applications/new">
-              <Button className="gap-2 rounded-xl">
-                <RiAddLine className="h-4 w-4" />
-                New application
-              </Button>
-            </Link>
+            <ServerRoleGate userRole={userRole} permission="applications:create">
+              <Link href="/applications/new">
+                <Button className="gap-2 rounded-xl">
+                  <RiAddLine className="h-4 w-4" />
+                  New application
+                </Button>
+              </Link>
+            </ServerRoleGate>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 stagger-children">
@@ -299,12 +306,14 @@ export default async function ApplicationsPage({ searchParams }: ApplicationsPag
                   Create your first loan application to get started. You can also receive applications via API.
                 </p>
               </div>
-              <Link href="/applications/new">
-                <Button className="press-scale rounded-xl">
-                  <RiAddLine className="h-4 w-4 mr-2" />
-                  Create application
-                </Button>
-              </Link>
+              <ServerRoleGate userRole={userRole} permission="applications:create">
+                <Link href="/applications/new">
+                  <Button className="press-scale rounded-xl">
+                    <RiAddLine className="h-4 w-4 mr-2" />
+                    Create application
+                  </Button>
+                </Link>
+              </ServerRoleGate>
             </div>
           </CardContent>
         </Card>
@@ -390,9 +399,26 @@ export default async function ApplicationsPage({ searchParams }: ApplicationsPag
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem>
-                            <RiEyeLine className="h-4 w-4 mr-2" /> View details
+                          <DropdownMenuItem asChild>
+                            <Link href={`/applications/${app.id}`}>
+                              <RiEyeLine className="h-4 w-4 mr-2" /> View details
+                            </Link>
                           </DropdownMenuItem>
+                          {["SUBMITTED", "UNDER_REVIEW"].includes(app.status) && (
+                            <>
+                              <ServerRoleGate userRole={userRole} permission="applications:approve">
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem className="text-success focus:text-success">
+                                  <RiCheckLine className="h-4 w-4 mr-2" /> Approve
+                                </DropdownMenuItem>
+                              </ServerRoleGate>
+                              <ServerRoleGate userRole={userRole} permission="applications:reject">
+                                <DropdownMenuItem className="text-destructive focus:text-destructive">
+                                  <RiCloseLine className="h-4 w-4 mr-2" /> Reject
+                                </DropdownMenuItem>
+                              </ServerRoleGate>
+                            </>
+                          )}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>

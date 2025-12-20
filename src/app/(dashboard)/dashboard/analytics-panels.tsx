@@ -201,7 +201,7 @@ export function DashboardAnalytics({
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-6 lg:grid-cols-3 stagger-children">
         <Card className="lg:col-span-2 bg-card/90">
           <CardHeader className="flex flex-col gap-2">
             <div className="flex flex-wrap items-start justify-between gap-3">
@@ -304,7 +304,7 @@ export function DashboardAnalytics({
         </Card>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-6 lg:grid-cols-3 stagger-children">
         <Card className="lg:col-span-2 bg-card/90">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -403,7 +403,7 @@ export function DashboardAnalytics({
         </Card>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-6 lg:grid-cols-3 stagger-children">
         <Card className="bg-card/90">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -441,7 +441,7 @@ export function DashboardAnalytics({
             <CardDescription>Highest growth segments and ticket sizes</CardDescription>
           </CardHeader>
           <CardContent>
-            <ItemGroup className="gap-3">
+            <ItemGroup className="gap-3 stagger-children">
               {segmentHighlights.map((segment) => {
                 const SegmentIcon = segment.icon;
                 return (
@@ -468,7 +468,7 @@ export function DashboardAnalytics({
         </Card>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 stagger-children">
         {[
           {
             title: "KYC clearance",

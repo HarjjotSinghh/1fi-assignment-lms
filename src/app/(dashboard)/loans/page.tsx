@@ -5,11 +5,13 @@ import Link from "next/link";
 import {
   RiAlertLine,
   RiCalendarLine,
+  RiDownloadLine,
   RiEyeLine,
   RiLineChartLine,
   RiMoneyDollarCircleLine,
   RiMore2Line,
   RiSearchLine,
+  RiSettings3Line,
 } from "react-icons/ri";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -27,6 +29,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Progress } from "@/components/ui/progress";
@@ -42,6 +45,8 @@ import {
 } from "@/components/ui/pagination";
 import { buildQueryString, getPaginationItems, getStringParam, type SearchParams } from "@/lib/pagination";
 import { formatCurrency, formatDate, formatPercent, getStatusColor } from "@/lib/utils";
+import { ServerRoleGate } from "@/components/auth/role-gate";
+import { auth } from "@/lib/auth";
 
 async function getLoans() {
   try {
@@ -81,6 +86,8 @@ type LoansPageProps = {
 };
 
 export default async function LoansPage({ searchParams }: LoansPageProps) {
+  const session = await auth();
+  const userRole = session?.user?.role;
   const allLoans = await getLoans();
   const searchQuery = (getStringParam(searchParams?.q) ?? "").trim();
   const statusFilter = getStringParam(searchParams?.status) ?? "all";
@@ -162,9 +169,19 @@ export default async function LoansPage({ searchParams }: LoansPageProps) {
               </p>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="outline" className="rounded-xl gap-2">
-                <RiLineChartLine className="h-4 w-4" />
-                Portfolio report
+              <ServerRoleGate userRole={userRole} permission="loans:export">
+                <Button variant="outline" className="rounded-xl gap-2" asChild>
+                  <a href="/api/export/loans" download>
+                    <RiDownloadLine className="h-4 w-4" />
+                    Export CSV
+                  </a>
+                </Button>
+              </ServerRoleGate>
+              <Button variant="outline" className="rounded-xl gap-2" asChild>
+                <Link href="/analytics">
+                  <RiLineChartLine className="h-4 w-4" />
+                  Portfolio report
+                </Link>
               </Button>
             </div>
           </div>
@@ -377,12 +394,22 @@ export default async function LoansPage({ searchParams }: LoansPageProps) {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem>
-                              <RiEyeLine className="h-4 w-4 mr-2" /> View details
+                            <DropdownMenuItem asChild>
+                              <Link href={`/loans/${loan.id}`}>
+                                <RiEyeLine className="h-4 w-4 mr-2" /> View details
+                              </Link>
                             </DropdownMenuItem>
-                            <DropdownMenuItem>
-                              <RiCalendarLine className="h-4 w-4 mr-2" /> EMI schedule
+                            <DropdownMenuItem asChild>
+                              <Link href={`/loans/${loan.id}#emi-schedule`}>
+                                <RiCalendarLine className="h-4 w-4 mr-2" /> EMI schedule
+                              </Link>
                             </DropdownMenuItem>
+                            <ServerRoleGate userRole={userRole} permission="loans:manage">
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem>
+                                <RiSettings3Line className="h-4 w-4 mr-2" /> Manage loan
+                              </DropdownMenuItem>
+                            </ServerRoleGate>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>

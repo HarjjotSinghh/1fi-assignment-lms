@@ -2,9 +2,15 @@ import { db } from "@/db";
 import { loanProducts } from "@/db/schema";
 import { NextRequest, NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
+import { checkApiAuth } from "@/lib/api-auth";
 
-// GET all products
+// GET all products (authenticated users can view)
 export async function GET() {
+    const authResult = await checkApiAuth();
+    if (!authResult.authorized) {
+        return authResult.error;
+    }
+
     try {
         const products = await db.select().from(loanProducts);
         return NextResponse.json(products);
@@ -17,8 +23,13 @@ export async function GET() {
     }
 }
 
-// POST create new product
+// POST create new product (requires products:create permission)
 export async function POST(request: NextRequest) {
+    const authResult = await checkApiAuth("products:create");
+    if (!authResult.authorized) {
+        return authResult.error;
+    }
+
     try {
         const body = await request.json();
 
@@ -51,3 +62,4 @@ export async function POST(request: NextRequest) {
         );
     }
 }
+

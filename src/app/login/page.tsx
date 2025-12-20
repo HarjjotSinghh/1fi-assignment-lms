@@ -62,7 +62,7 @@ export default function LoginPage() {
           className="relative z-10 space-y-8"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
+          transition={{ duration: 0.8, delay: 0.1 }}
         >
           <Badge className="w-fit rounded-full border border-white/30 bg-white/10 text-white">
             Secure access
@@ -75,7 +75,7 @@ export default function LoginPage() {
               Monitor pipeline health, collateral coverage, and approvals from a single view.
             </p>
           </div>
-          <div className="grid gap-4">
+          <div className="grid gap-4 stagger-children">
             {highlights.map((item) => (
               <Card key={item.label} className="border-white/10 bg-white/5">
                 <CardContent className="p-4 flex items-center gap-4">
@@ -110,10 +110,10 @@ export default function LoginPage() {
 
         <div className="flex flex-1 items-center justify-center p-6 lg:p-12">
           <motion.div
-            className="w-full max-w-md space-y-8"
+            className="w-full max-w-md space-y-8 stagger-children"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
+            transition={{ duration: 0.8 }}
           >
             <div className="hidden lg:flex justify-end">
               <ThemeToggle />
