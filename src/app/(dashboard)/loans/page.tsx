@@ -1,16 +1,15 @@
 import { db } from "@/db";
-import { loans, customers, loanProducts, emiSchedule } from "@/db/schema";
+import { loans, customers, loanProducts } from "@/db/schema";
 import { desc, eq } from "drizzle-orm";
-import Link from "next/link";
 import {
-  CircleDollarSign,
-  TrendingUp,
-  Calendar,
-  AlertTriangle,
-  Eye,
-  MoreHorizontal,
-} from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+  RiMoneyDollarCircleLine,
+  RiLineChartLine,
+  RiCalendarLine,
+  RiAlertLine,
+  RiEyeLine,
+  RiMore2Line,
+} from "react-icons/ri";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -76,7 +75,6 @@ export default async function LoansPage() {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      {/* Page Header */}
       <div>
         <h1 className="font-heading text-3xl font-bold tracking-tight">Active Loans</h1>
         <p className="text-muted-foreground mt-1">
@@ -84,7 +82,6 @@ export default async function LoansPage() {
         </p>
       </div>
 
-      {/* Stats Cards */}
       <div className="grid gap-4 sm:grid-cols-4">
         <Card className="border">
           <CardContent className="pt-5 pb-4">
@@ -116,13 +113,12 @@ export default async function LoansPage() {
         </Card>
       </div>
 
-      {/* Loans Table */}
       {allLoans.length === 0 ? (
         <Card className="border border-dashed bg-muted/30">
           <CardContent className="py-16">
             <div className="text-center space-y-4">
               <div className="mx-auto w-14 h-14 bg-primary/10 flex items-center justify-center">
-                <CircleDollarSign className="h-7 w-7 text-primary" />
+                <RiMoneyDollarCircleLine className="h-7 w-7 text-primary" />
               </div>
               <div>
                 <h3 className="font-heading text-lg font-semibold">No Active Loans Yet</h3>
@@ -184,7 +180,7 @@ export default async function LoansPage() {
                           <span className={`text-xs font-mono ${isAtRisk ? "text-warning" : ""}`}>
                             {formatPercent(ltvPercent)}
                           </span>
-                          {isAtRisk && <AlertTriangle className="h-3.5 w-3.5 text-warning" />}
+                          {isAtRisk && <RiAlertLine className="h-3.5 w-3.5 text-warning" />}
                         </div>
                       </TableCell>
                       <TableCell>
@@ -201,15 +197,15 @@ export default async function LoansPage() {
                               size="icon"
                               className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
                             >
-                              <MoreHorizontal className="h-4 w-4" />
+                              <RiMore2Line className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem>
-                              <Eye className="h-4 w-4 mr-2" /> View Details
+                              <RiEyeLine className="h-4 w-4 mr-2" /> View Details
                             </DropdownMenuItem>
                             <DropdownMenuItem>
-                              <Calendar className="h-4 w-4 mr-2" /> EMI Schedule
+                              <RiCalendarLine className="h-4 w-4 mr-2" /> EMI Schedule
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>

@@ -1,19 +1,19 @@
 import { db } from "@/db";
-import { customers, loanApplications, loans } from "@/db/schema";
-import { desc, eq, count } from "drizzle-orm";
+import { customers } from "@/db/schema";
+import { desc } from "drizzle-orm";
 import Link from "next/link";
 import {
-  Users,
-  UserPlus,
-  CheckCircle2,
-  Clock,
-  XCircle,
-  Eye,
-  MoreHorizontal,
-  Shield,
-  Mail,
-  Phone,
-} from "lucide-react";
+  RiUserLine,
+  RiUserAddLine,
+  RiCheckLine,
+  RiTimeLine,
+  RiCloseLine,
+  RiEyeLine,
+  RiMore2Line,
+  RiShieldCheckLine,
+  RiMailLine,
+  RiPhoneLine,
+} from "react-icons/ri";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -54,15 +54,14 @@ export default async function CustomersPage() {
   };
 
   const kycStatusIcons: Record<string, React.ReactNode> = {
-    PENDING: <Clock className="h-3.5 w-3.5" />,
-    IN_PROGRESS: <Clock className="h-3.5 w-3.5" />,
-    VERIFIED: <CheckCircle2 className="h-3.5 w-3.5" />,
-    REJECTED: <XCircle className="h-3.5 w-3.5" />,
+    PENDING: <RiTimeLine className="h-3.5 w-3.5" />,
+    IN_PROGRESS: <RiTimeLine className="h-3.5 w-3.5" />,
+    VERIFIED: <RiCheckLine className="h-3.5 w-3.5" />,
+    REJECTED: <RiCloseLine className="h-3.5 w-3.5" />,
   };
 
   return (
     <div className="space-y-6 animate-fade-in">
-      {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-heading text-3xl font-bold tracking-tight">Customers</h1>
@@ -72,13 +71,12 @@ export default async function CustomersPage() {
         </div>
         <Link href="/applications/new">
           <Button className="gap-2 press-scale">
-            <UserPlus className="h-4 w-4" />
+            <RiUserAddLine className="h-4 w-4" />
             Onboard Customer
           </Button>
         </Link>
       </div>
 
-      {/* Stats Cards */}
       <div className="grid gap-4 sm:grid-cols-4">
         <Card className="border">
           <CardContent className="pt-5 pb-4">
@@ -89,7 +87,7 @@ export default async function CustomersPage() {
         <Card className="border">
           <CardContent className="pt-5 pb-4">
             <p className="text-sm text-muted-foreground">KYC Verified</p>
-            <p className="text-2xl font-heading font-bold mt-1 text-success">{stats.verified}</p>
+            <p className="text-2xl font-heading font-bold mt-1 text-primary">{stats.verified}</p>
           </CardContent>
         </Card>
         <Card className="border">
@@ -106,13 +104,12 @@ export default async function CustomersPage() {
         </Card>
       </div>
 
-      {/* Customers Table */}
       {allCustomers.length === 0 ? (
         <Card className="border border-dashed bg-muted/30">
           <CardContent className="py-16">
             <div className="text-center space-y-4">
               <div className="mx-auto w-14 h-14 bg-primary/10 flex items-center justify-center">
-                <Users className="h-7 w-7 text-primary" />
+                <RiUserLine className="h-7 w-7 text-primary" />
               </div>
               <div>
                 <h3 className="font-heading text-lg font-semibold">No Customers Yet</h3>
@@ -122,7 +119,7 @@ export default async function CustomersPage() {
               </div>
               <Link href="/applications/new">
                 <Button className="press-scale">
-                  <UserPlus className="h-4 w-4 mr-2" />
+                  <RiUserAddLine className="h-4 w-4 mr-2" />
                   Onboard Customer
                 </Button>
               </Link>
@@ -175,11 +172,11 @@ export default async function CustomersPage() {
                     <TableCell>
                       <div className="space-y-0.5">
                         <p className="text-sm flex items-center gap-1.5">
-                          <Mail className="h-3 w-3 text-muted-foreground" />
+                          <RiMailLine className="h-3 w-3 text-muted-foreground" />
                           {customer.email}
                         </p>
                         <p className="text-sm flex items-center gap-1.5 text-muted-foreground">
-                          <Phone className="h-3 w-3" />
+                          <RiPhoneLine className="h-3 w-3" />
                           {customer.phone}
                         </p>
                       </div>
@@ -196,7 +193,7 @@ export default async function CustomersPage() {
                           {customer.aadhaarNumber ? maskAadhaar(customer.aadhaarNumber) : "—"}
                         </span>
                         {customer.aadhaarVerified && (
-                          <CheckCircle2 className="h-3.5 w-3.5 text-success" />
+                          <RiCheckLine className="h-3.5 w-3.5 text-primary" />
                         )}
                       </div>
                     </TableCell>
@@ -206,7 +203,7 @@ export default async function CustomersPage() {
                           {customer.panNumber ? maskPan(customer.panNumber) : "—"}
                         </span>
                         {customer.panVerified && (
-                          <CheckCircle2 className="h-3.5 w-3.5 text-success" />
+                          <RiCheckLine className="h-3.5 w-3.5 text-primary" />
                         )}
                       </div>
                     </TableCell>
@@ -226,15 +223,15 @@ export default async function CustomersPage() {
                             size="icon"
                             className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
                           >
-                            <MoreHorizontal className="h-4 w-4" />
+                            <RiMore2Line className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem>
-                            <Eye className="h-4 w-4 mr-2" /> View Profile
+                            <RiEyeLine className="h-4 w-4 mr-2" /> View Profile
                           </DropdownMenuItem>
                           <DropdownMenuItem>
-                            <Shield className="h-4 w-4 mr-2" /> Re-verify KYC
+                            <RiShieldCheckLine className="h-4 w-4 mr-2" /> Re-verify KYC
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>

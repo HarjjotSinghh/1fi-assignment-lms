@@ -47,7 +47,7 @@ export function ProductFormDialog() {
   const router = useRouter();
 
   const form = useForm<ProductFormData>({
-    resolver: zodResolver(productSchema),
+    resolver: zodResolver(productSchema) as any,
     defaultValues: {
       name: "",
       description: "",

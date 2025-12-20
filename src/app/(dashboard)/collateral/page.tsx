@@ -1,17 +1,15 @@
 import { db } from "@/db";
 import { collaterals, customers, loans } from "@/db/schema";
-import { desc, eq, sum } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import {
-  Shield,
-  TrendingUp,
-  TrendingDown,
-  AlertTriangle,
-  Building,
-  ChartPie,
-  Eye,
-  MoreHorizontal,
-} from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+  RiShieldLine,
+  RiArrowUpLine,
+  RiArrowDownLine,
+  RiEyeLine,
+  RiMore2Line,
+  RiPieChartLine,
+} from "react-icons/ri";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -76,7 +74,7 @@ export default async function CollateralPage() {
   };
 
   const schemeTypeColors: Record<string, string> = {
-    EQUITY: "bg-success/10 text-success border-success/20",
+    EQUITY: "bg-primary/10 text-primary border-primary/20",
     DEBT: "bg-info/10 text-info border-info/20",
     HYBRID: "bg-accent/10 text-accent border-accent/20",
     LIQUID: "bg-muted text-muted-foreground",
@@ -84,7 +82,6 @@ export default async function CollateralPage() {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      {/* Page Header */}
       <div>
         <h1 className="font-heading text-3xl font-bold tracking-tight">Collateral Management</h1>
         <p className="text-muted-foreground mt-1">
@@ -92,7 +89,6 @@ export default async function CollateralPage() {
         </p>
       </div>
 
-      {/* Stats Cards */}
       <div className="grid gap-4 sm:grid-cols-4">
         <Card className="border">
           <CardContent className="pt-5 pb-4">
@@ -121,13 +117,13 @@ export default async function CollateralPage() {
             <p className="text-sm text-muted-foreground">Unrealized Gain/Loss</p>
             <div className="flex items-center gap-2 mt-1">
               {stats.gainLoss >= 0 ? (
-                <TrendingUp className="h-5 w-5 text-success" />
+                <RiArrowUpLine className="h-5 w-5 text-primary" />
               ) : (
-                <TrendingDown className="h-5 w-5 text-destructive" />
+                <RiArrowDownLine className="h-5 w-5 text-destructive" />
               )}
               <p
                 className={`text-2xl font-heading font-bold ${
-                  stats.gainLoss >= 0 ? "text-success" : "text-destructive"
+                  stats.gainLoss >= 0 ? "text-primary" : "text-destructive"
                 }`}
               >
                 {formatCurrency(Math.abs(stats.gainLoss))}
@@ -137,13 +133,12 @@ export default async function CollateralPage() {
         </Card>
       </div>
 
-      {/* Collaterals Table */}
       {allCollaterals.length === 0 ? (
         <Card className="border border-dashed bg-muted/30">
           <CardContent className="py-16">
             <div className="text-center space-y-4">
               <div className="mx-auto w-14 h-14 bg-primary/10 flex items-center justify-center">
-                <Shield className="h-7 w-7 text-primary" />
+                <RiShieldLine className="h-7 w-7 text-primary" />
               </div>
               <div>
                 <h3 className="font-heading text-lg font-semibold">No Collaterals Yet</h3>
@@ -213,7 +208,7 @@ export default async function CollateralPage() {
                           </p>
                           <p
                             className={`text-xs font-mono ${
-                              change >= 0 ? "text-success" : "text-destructive"
+                              change >= 0 ? "text-primary" : "text-destructive"
                             }`}
                           >
                             {change >= 0 ? "+" : ""}
@@ -234,15 +229,15 @@ export default async function CollateralPage() {
                               size="icon"
                               className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
                             >
-                              <MoreHorizontal className="h-4 w-4" />
+                              <RiMore2Line className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem>
-                              <Eye className="h-4 w-4 mr-2" /> View Details
+                              <RiEyeLine className="h-4 w-4 mr-2" /> View Details
                             </DropdownMenuItem>
                             <DropdownMenuItem>
-                              <ChartPie className="h-4 w-4 mr-2" /> NAV History
+                              <RiPieChartLine className="h-4 w-4 mr-2" /> NAV History
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>

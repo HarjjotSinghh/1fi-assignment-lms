@@ -90,7 +90,7 @@ export function CustomerOnboardingForm({ products }: { products: LoanProduct[] }
   const router = useRouter();
 
   const form = useForm<CustomerFormData>({
-    resolver: zodResolver(customerSchema),
+    resolver: zodResolver(customerSchema) as any,
     defaultValues: {
       firstName: "",
       lastName: "",
