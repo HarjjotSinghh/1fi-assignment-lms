@@ -340,6 +340,46 @@ export const documents = sqliteTable("documents", {
     applicationId: text("application_id").references(() => loanApplications.id),
 });
 
+// ============================================
+// KYC VERIFICATIONS (DigiLocker)
+// ============================================
+
+export const kycVerifications = sqliteTable("kyc_verifications", {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+
+    // Verification identifiers
+    verificationId: text("verification_id").notNull().unique(), // Our unique ID sent to Cashfree
+    referenceId: integer("reference_id"), // Cashfree's reference ID
+
+    // Request details
+    documentsRequested: text("documents_requested").notNull(), // JSON array: ["AADHAAR", "PAN"]
+    documentsConsented: text("documents_consented"), // JSON array of consented docs
+    redirectUrl: text("redirect_url"),
+    digilockerUrl: text("digilocker_url"),
+    userFlow: text("user_flow").default("signup"), // signin or signup
+
+    // Status tracking
+    status: text("status").notNull().default("PENDING"), // PENDING, AUTHENTICATED, EXPIRED, CONSENT_DENIED
+
+    // User details returned from DigiLocker
+    userName: text("user_name"),
+    userDob: text("user_dob"),
+    userGender: text("user_gender"),
+    userMobile: text("user_mobile"),
+
+    // Consent validity
+    consentExpiresAt: text("consent_expires_at"),
+
+    // Timestamps
+    createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+    updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+    expiresAt: text("expires_at"), // URL expires 10 mins after creation
+    completedAt: text("completed_at"),
+
+    // Relations
+    customerId: text("customer_id").references(() => customers.id),
+});
+
 // Type exports for insert/select operations
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
@@ -363,3 +403,5 @@ export type Payment = typeof payments.$inferSelect;
 export type NewPayment = typeof payments.$inferInsert;
 export type Document = typeof documents.$inferSelect;
 export type NewDocument = typeof documents.$inferInsert;
+export type KycVerification = typeof kycVerifications.$inferSelect;
+export type NewKycVerification = typeof kycVerifications.$inferInsert;

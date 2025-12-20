@@ -164,7 +164,7 @@ export default async function CollateralPage({ searchParams }: CollateralPagePro
             </p>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 stagger-children">
             {[
               { label: "Pledged collaterals", value: totalPledged },
               { label: "Total current value", value: formatCurrency(totalValue) },

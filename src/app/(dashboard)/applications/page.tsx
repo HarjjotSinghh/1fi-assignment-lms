@@ -185,7 +185,7 @@ export default async function ApplicationsPage({ searchParams }: ApplicationsPag
             </Link>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 stagger-children">
             {[
               { label: "Total applications", value: stats.total },
               { label: "Pending review", value: stats.pending },

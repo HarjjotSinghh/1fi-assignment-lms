@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useForm } from "react-hook-form";
@@ -11,13 +11,11 @@ import {
   RiShieldCheckLine,
   RiMapPinLine,
   RiBriefcaseLine,
-  RiBankCardLine,
-  RiFileListLine,
   RiArrowRightLine,
   RiArrowLeftLine,
   RiLoader4Line,
   RiCheckLine,
-  RiAlertLine,
+  RiSkipForwardLine,
 } from "react-icons/ri";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -31,73 +29,60 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { toast } from "sonner";
-import { validatePhone, formatCurrency } from "@/lib/utils";
 import { KycVerificationCard } from "@/components/kyc/kyc-verification-card";
-import type { LoanProduct } from "@/db/schema";
+import { toast } from "sonner";
+import { validatePhone } from "@/lib/utils";
 
-const customerSchema = z.object({
-  // Personal Info
+// Schema for onboarding - KYC is optional
+const onboardingSchema = z.object({
+  // Personal Info (required)
   firstName: z.string().min(2, "First name is required"),
   lastName: z.string().min(2, "Last name is required"),
   email: z.string().email("Invalid email address"),
   phone: z.string().refine(validatePhone, "Invalid phone number (10 digits starting with 6-9)"),
   dateOfBirth: z.string().min(1, "Date of birth is required"),
-  
-  // Address
-  addressLine1: z.string().min(5, "Address is required"),
+
+  // Address (optional for onboarding)
+  addressLine1: z.string().optional(),
   addressLine2: z.string().optional(),
-  city: z.string().min(2, "City is required"),
-  state: z.string().min(2, "State is required"),
-  pincode: z.string().regex(/^\d{6}$/, "Invalid pincode (6 digits)"),
-  
-  // Employment
-  employmentType: z.enum(["SALARIED", "SELF_EMPLOYED", "BUSINESS"]),
-  monthlyIncome: z.coerce.number().min(10000, "Minimum income should be ₹10,000"),
+  city: z.string().optional(),
+  state: z.string().optional(),
+  pincode: z.string().optional(),
+
+  // Employment (optional for onboarding)
+  employmentType: z.enum(["SALARIED", "SELF_EMPLOYED", "BUSINESS"]).optional(),
+  monthlyIncome: z.coerce.number().optional(),
   companyName: z.string().optional(),
-  
-  // Bank Details
-  bankAccountNumber: z.string().min(8, "Bank account number is required"),
-  bankIfscCode: z.string().regex(/^[A-Z]{4}0[A-Z0-9]{6}$/, "Invalid IFSC code"),
-  bankName: z.string().min(2, "Bank name is required"),
-  
-  // Loan Details
-  productId: z.string().min(1, "Select a loan product"),
-  requestedAmount: z.coerce.number().min(10000, "Minimum loan amount is ₹10,000"),
-  tenure: z.coerce.number().min(1, "Tenure is required"),
 });
 
-type CustomerFormData = z.infer<typeof customerSchema>;
+type OnboardingFormData = z.infer<typeof onboardingSchema>;
 
 const steps = [
   { id: "personal", title: "Personal Info", icon: RiUserLine },
   { id: "kyc", title: "KYC Verification", icon: RiShieldCheckLine },
   { id: "address", title: "Address", icon: RiMapPinLine },
   { id: "employment", title: "Employment", icon: RiBriefcaseLine },
-  { id: "bank", title: "Bank Details", icon: RiBankCardLine },
-  { id: "loan", title: "Loan Details", icon: RiFileListLine },
 ];
 
-export function CustomerOnboardingForm({ products }: { products: LoanProduct[] }) {
+export function OnboardingForm() {
   const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
-  const [kycVerified, setKycVerified] = useState(false);
+  const [kycCompleted, setKycCompleted] = useState(false);
+  const [kycSkipped, setKycSkipped] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Check for KYC status from redirect
-  useEffect(() => {
-    const kycStatus = searchParams.get("kyc_status");
-    if (kycStatus === "AUTHENTICATED") {
-      setKycVerified(true);
-      toast.success("KYC verification completed!", {
-        description: "Your Aadhaar and PAN have been verified.",
-      });
-    }
-  }, [searchParams]);
+  // Check if returning from DigiLocker
+  const kycVerification = searchParams.get("kyc_verification");
+  const kycStatus = searchParams.get("kyc_status");
 
-  const form = useForm<CustomerFormData>({
-    resolver: zodResolver(customerSchema) as any,
+  // If returning with successful KYC
+  if (kycStatus === "AUTHENTICATED" && !kycCompleted) {
+    setKycCompleted(true);
+  }
+
+  const form = useForm<OnboardingFormData>({
+    resolver: zodResolver(onboardingSchema),
     defaultValues: {
       firstName: "",
       lastName: "",
@@ -109,91 +94,75 @@ export function CustomerOnboardingForm({ products }: { products: LoanProduct[] }
       city: "",
       state: "",
       pincode: "",
-      employmentType: "SALARIED",
-      monthlyIncome: 0,
+      employmentType: undefined,
+      monthlyIncome: undefined,
       companyName: "",
-      bankAccountNumber: "",
-      bankIfscCode: "",
-      bankName: "",
-      productId: "",
-      requestedAmount: 100000,
-      tenure: 12,
     },
   });
 
-  const selectedProduct = products.find((p) => p.id === form.watch("productId"));
-
-  const handleKycComplete = (status: string) => {
-    if (status === "AUTHENTICATED") {
-      setKycVerified(true);
-    }
-  };
-
   const nextStep = async () => {
-    // KYC step doesn't have form fields to validate
-    if (currentStep === 1) {
-      if (!kycVerified) {
-        toast.error("KYC verification required", {
-          description: "Please verify your Aadhaar and PAN via DigiLocker before proceeding.",
-        });
-        return;
-      }
-      setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
-      return;
-    }
-
     const fieldsToValidate = getFieldsForStep(currentStep);
-    const result = await form.trigger(fieldsToValidate as any);
-    if (result) {
-      setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
+    if (fieldsToValidate.length > 0) {
+      const result = await form.trigger(fieldsToValidate as (keyof OnboardingFormData)[]);
+      if (!result) return;
     }
+    setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
   };
 
   const prevStep = () => {
     setCurrentStep((prev) => Math.max(prev - 1, 0));
   };
 
-  const getFieldsForStep = (step: number): (keyof CustomerFormData)[] => {
+  const getFieldsForStep = (step: number): string[] => {
     switch (step) {
       case 0: return ["firstName", "lastName", "email", "phone", "dateOfBirth"];
-      case 1: return []; // KYC via DigiLocker - no form fields
-      case 2: return ["addressLine1", "city", "state", "pincode"];
-      case 3: return ["employmentType", "monthlyIncome"];
-      case 4: return ["bankAccountNumber", "bankIfscCode", "bankName"];
-      case 5: return ["productId", "requestedAmount", "tenure"];
+      case 1: return []; // KYC step - no form fields to validate
+      case 2: return []; // Address is optional
+      case 3: return []; // Employment is optional
       default: return [];
     }
   };
 
-  const onSubmit = async (data: CustomerFormData) => {
-    if (!kycVerified) {
-      toast.error("KYC verification required", {
-        description: "Please verify your Aadhaar and PAN via DigiLocker before submitting.",
-      });
-      setCurrentStep(1);
-      return;
+  const handleKycComplete = (status: string) => {
+    if (status === "AUTHENTICATED") {
+      setKycCompleted(true);
+      toast.success("KYC verification completed!");
     }
+  };
 
+  const handleKycSkip = () => {
+    setKycSkipped(true);
+    nextStep();
+  };
+
+  const onSubmit = async (data: OnboardingFormData) => {
     setIsLoading(true);
     try {
-      const response = await fetch("/api/applications", {
+      // Create customer profile
+      const response = await fetch("/api/customers", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...data,
-          kycVerified: true,
+          kycStatus: kycCompleted ? "VERIFIED" : "PENDING",
         }),
       });
 
-      if (!response.ok) throw new Error("Failed to create application");
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to create profile");
+      }
 
-      toast.success("Application submitted successfully!", {
-        description: "The loan application is now under review.",
+      toast.success("Profile created successfully!", {
+        description: kycCompleted 
+          ? "You're all set! Your KYC is verified."
+          : "You can complete KYC later when applying for a loan.",
       });
-      router.push("/applications");
+
+      router.push("/dashboard");
     } catch (error) {
-      toast.error("Failed to submit application", {
-        description: "Please try again later.",
+      toast.error("Failed to create profile", {
+        description: error instanceof Error ? error.message : "Please try again later.",
       });
     } finally {
       setIsLoading(false);
@@ -202,12 +171,13 @@ export function CustomerOnboardingForm({ products }: { products: LoanProduct[] }
 
   return (
     <div className="space-y-6">
-      {/* Progress Steps with Icons */}
+      {/* Progress Steps */}
       <div className="flex items-center justify-between">
         {steps.map((step, index) => {
           const StepIcon = step.icon;
-          const isCompleted = index < currentStep;
+          const isCompleted = index < currentStep || (index === 1 && kycCompleted);
           const isCurrent = index === currentStep;
+          const isKycStep = index === 1;
 
           return (
             <div key={step.id} className="flex items-center">
@@ -224,6 +194,8 @@ export function CustomerOnboardingForm({ products }: { products: LoanProduct[] }
               >
                 {isCompleted ? (
                   <RiCheckLine className="h-4 w-4" />
+                ) : isKycStep && kycSkipped ? (
+                  <RiSkipForwardLine className="h-4 w-4" />
                 ) : (
                   <StepIcon className="h-4 w-4" />
                 )}
@@ -277,38 +249,62 @@ export function CustomerOnboardingForm({ products }: { products: LoanProduct[] }
                     <div className="space-y-2">
                       <Label htmlFor="lastName">Last Name *</Label>
                       <Input id="lastName" placeholder="Doe" {...form.register("lastName")} />
+                      {form.formState.errors.lastName && (
+                        <p className="text-xs text-destructive">{form.formState.errors.lastName.message}</p>
+                      )}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="email">Email *</Label>
                       <Input id="email" type="email" placeholder="john@example.com" {...form.register("email")} />
+                      {form.formState.errors.email && (
+                        <p className="text-xs text-destructive">{form.formState.errors.email.message}</p>
+                      )}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="phone">Phone Number *</Label>
                       <Input id="phone" placeholder="9876543210" {...form.register("phone")} />
+                      {form.formState.errors.phone && (
+                        <p className="text-xs text-destructive">{form.formState.errors.phone.message}</p>
+                      )}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="dateOfBirth">Date of Birth *</Label>
                       <Input id="dateOfBirth" type="date" {...form.register("dateOfBirth")} />
+                      {form.formState.errors.dateOfBirth && (
+                        <p className="text-xs text-destructive">{form.formState.errors.dateOfBirth.message}</p>
+                      )}
                     </div>
                   </div>
                 )}
 
-                {/* Step 1: KYC */}
+                {/* Step 1: KYC Verification */}
                 {currentStep === 1 && (
-                  <KycVerificationCard
-                    mode="required"
-                    aadhaarVerified={kycVerified}
-                    panVerified={kycVerified}
-                    kycStatus={kycVerified ? "VERIFIED" : "PENDING"}
-                    onVerificationComplete={handleKycComplete}
-                  />
+                  <div className="space-y-4">
+                    <KycVerificationCard
+                      mode="optional"
+                      aadhaarVerified={kycCompleted}
+                      panVerified={kycCompleted}
+                      kycStatus={kycCompleted ? "VERIFIED" : "PENDING"}
+                      onVerificationComplete={handleKycComplete}
+                      onSkip={handleKycSkip}
+                    />
+                    
+                    {kycSkipped && !kycCompleted && (
+                      <p className="text-sm text-center text-muted-foreground">
+                        You can complete KYC later when applying for a loan.
+                      </p>
+                    )}
+                  </div>
                 )}
 
                 {/* Step 2: Address */}
                 {currentStep === 2 && (
                   <div className="grid gap-4">
+                    <p className="text-sm text-muted-foreground">
+                      Address information is optional. You can add it later.
+                    </p>
                     <div className="space-y-2">
-                      <Label htmlFor="addressLine1">Address Line 1 *</Label>
+                      <Label htmlFor="addressLine1">Address Line 1</Label>
                       <Input id="addressLine1" placeholder="House/Flat No, Street" {...form.register("addressLine1")} />
                     </div>
                     <div className="space-y-2">
@@ -317,15 +313,15 @@ export function CustomerOnboardingForm({ products }: { products: LoanProduct[] }
                     </div>
                     <div className="grid gap-4 sm:grid-cols-3">
                       <div className="space-y-2">
-                        <Label htmlFor="city">City *</Label>
+                        <Label htmlFor="city">City</Label>
                         <Input id="city" placeholder="Mumbai" {...form.register("city")} />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="state">State *</Label>
+                        <Label htmlFor="state">State</Label>
                         <Input id="state" placeholder="Maharashtra" {...form.register("state")} />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="pincode">Pincode *</Label>
+                        <Label htmlFor="pincode">Pincode</Label>
                         <Input id="pincode" placeholder="400001" {...form.register("pincode")} />
                       </div>
                     </div>
@@ -335,11 +331,14 @@ export function CustomerOnboardingForm({ products }: { products: LoanProduct[] }
                 {/* Step 3: Employment */}
                 {currentStep === 3 && (
                   <div className="grid gap-4 sm:grid-cols-2">
+                    <p className="text-sm text-muted-foreground sm:col-span-2">
+                      Employment information is optional. You can add it later.
+                    </p>
                     <div className="space-y-2">
-                      <Label htmlFor="employmentType">Employment Type *</Label>
+                      <Label htmlFor="employmentType">Employment Type</Label>
                       <Select
                         value={form.watch("employmentType")}
-                        onValueChange={(value) => form.setValue("employmentType", value as any)}
+                        onValueChange={(value) => form.setValue("employmentType", value as "SALARIED" | "SELF_EMPLOYED" | "BUSINESS")}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Select type" />
@@ -352,100 +351,13 @@ export function CustomerOnboardingForm({ products }: { products: LoanProduct[] }
                       </Select>
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="monthlyIncome">Monthly Income (₹) *</Label>
+                      <Label htmlFor="monthlyIncome">Monthly Income (₹)</Label>
                       <Input id="monthlyIncome" type="number" placeholder="50000" {...form.register("monthlyIncome")} />
                     </div>
                     <div className="space-y-2 sm:col-span-2">
                       <Label htmlFor="companyName">Company / Business Name</Label>
                       <Input id="companyName" placeholder="ABC Pvt Ltd" {...form.register("companyName")} />
                     </div>
-                  </div>
-                )}
-
-                {/* Step 4: Bank Details */}
-                {currentStep === 4 && (
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label htmlFor="bankName">Bank Name *</Label>
-                      <Input id="bankName" placeholder="HDFC Bank" {...form.register("bankName")} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="bankIfscCode">IFSC Code *</Label>
-                      <Input id="bankIfscCode" placeholder="HDFC0001234" className="uppercase" {...form.register("bankIfscCode")} />
-                    </div>
-                    <div className="space-y-2 sm:col-span-2">
-                      <Label htmlFor="bankAccountNumber">Account Number *</Label>
-                      <Input id="bankAccountNumber" placeholder="1234567890123456" {...form.register("bankAccountNumber")} />
-                    </div>
-                  </div>
-                )}
-
-                {/* Step 5: Loan Details */}
-                {currentStep === 5 && (
-                  <div className="space-y-6">
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <div className="space-y-2 sm:col-span-2">
-                        <Label htmlFor="productId">Loan Product *</Label>
-                        <Select
-                          value={form.watch("productId")}
-                          onValueChange={(value) => form.setValue("productId", value)}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a loan product" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {products.map((product) => (
-                              <SelectItem key={product.id} value={product.id}>
-                                <div className="flex items-center justify-between w-full">
-                                  <span>{product.name}</span>
-                                  <span className="text-muted-foreground ml-2">
-                                    @ {product.interestRatePercent}% p.a.
-                                  </span>
-                                </div>
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="requestedAmount">Loan Amount (₹) *</Label>
-                        <Input id="requestedAmount" type="number" placeholder="100000" {...form.register("requestedAmount")} />
-                        {selectedProduct && (
-                          <p className="text-xs text-muted-foreground">
-                            Range: {formatCurrency(selectedProduct.minAmount)} - {formatCurrency(selectedProduct.maxAmount)}
-                          </p>
-                        )}
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="tenure">Tenure (Months) *</Label>
-                        <Input id="tenure" type="number" placeholder="12" {...form.register("tenure")} />
-                        {selectedProduct && (
-                          <p className="text-xs text-muted-foreground">
-                            Range: {selectedProduct.minTenureMonths} - {selectedProduct.maxTenureMonths} months
-                          </p>
-                        )}
-                      </div>
-                    </div>
-
-                    {selectedProduct && (
-                      <div className="p-4 bg-muted/50 border">
-                        <h4 className="font-medium text-sm mb-3">Loan Summary</h4>
-                        <div className="grid gap-2 text-sm">
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">Product</span>
-                            <span className="font-medium">{selectedProduct.name}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">Interest Rate</span>
-                            <span className="font-mono">{selectedProduct.interestRatePercent}% p.a.</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">Max LTV</span>
-                            <span className="font-mono">{selectedProduct.maxLtvPercent}%</span>
-                          </div>
-                        </div>
-                      </div>
-                    )}
                   </div>
                 )}
               </CardContent>
@@ -469,7 +381,12 @@ export function CustomerOnboardingForm({ products }: { products: LoanProduct[] }
             {currentStep === steps.length - 1 ? (
               <Button type="submit" disabled={isLoading} className="gap-2 press-scale">
                 {isLoading && <RiLoader4Line className="h-4 w-4 animate-spin" />}
-                Submit Application
+                Complete Profile
+              </Button>
+            ) : currentStep === 1 && !kycCompleted && !kycSkipped ? (
+              <Button type="button" onClick={handleKycSkip} variant="secondary" className="gap-2">
+                Skip KYC
+                <RiSkipForwardLine className="h-4 w-4" />
               </Button>
             ) : (
               <Button type="button" onClick={nextStep} className="gap-2 press-scale">

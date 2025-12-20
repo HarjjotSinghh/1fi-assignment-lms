@@ -169,7 +169,7 @@ export default async function LoansPage({ searchParams }: LoansPageProps) {
             </div>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 stagger-children">
             {[
               { label: "Active loans", value: totalActive },
               { label: "Total outstanding", value: formatCurrency(totalOutstanding) },
