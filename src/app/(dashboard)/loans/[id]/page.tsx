@@ -29,6 +29,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatCurrency, formatDate, formatPercent, getStatusColor } from "@/lib/utils";
+import { ForeclosureDialog, RecordPaymentDialog } from "@/components/loans/loan-actions";
 
 async function getLoanDetails(id: string) {
   try {
@@ -152,11 +153,17 @@ export default async function LoanDetailPage({ params }: LoanDetailPageProps) {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <ForeclosureDialog loanId={loan.id} totalOutstanding={loan.totalOutstanding} />
+          <RecordPaymentDialog
+            loanId={loan.id}
+            totalOutstanding={loan.totalOutstanding}
+            emiAmount={loan.emiAmount}
+          />
           <Button variant="outline" className="rounded-none gap-2" asChild>
-            <a href={`/api/export/loans?id=${id}`}>
+            <Link href={`/api/export/loans?id=${id}`}>
               <RiDownloadLine className="h-4 w-4" />
               Export
-            </a>
+            </Link>
           </Button>
         </div>
       </section>

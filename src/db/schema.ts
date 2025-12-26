@@ -340,6 +340,7 @@ export const documents = sqliteTable("documents", {
     // Relations
     customerId: text("customer_id").references(() => customers.id),
     applicationId: text("application_id").references(() => loanApplications.id),
+    loanId: text("loan_id").references(() => loans.id),
 });
 
 // ============================================
@@ -477,6 +478,469 @@ export const approvals = sqliteTable("approvals", {
     reviewedById: text("reviewed_by_id").references(() => users.id),
 });
 
+// ============================================
+// PARTNERS (B2B)
+// ============================================
+
+export const partners = sqliteTable("partners", {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+    name: text("name").notNull(),
+    code: text("code").notNull().unique(), // Partner short code
+    type: text("type").notNull().default("FINTECH"), // FINTECH, BANK, NBFC, MERCHANT
+
+    // Contact
+    contactName: text("contact_name"),
+    contactEmail: text("contact_email"),
+    contactPhone: text("contact_phone"),
+
+    // API Access
+    apiKeyId: text("api_key_id").references(() => apiKeys.id),
+    webhookUrl: text("webhook_url"),
+
+    // Revenue Sharing
+    revenueSharePercent: real("revenue_share_percent").default(0),
+
+    // Status
+    isActive: integer("is_active", { mode: "boolean" }).default(true),
+
+    // Timestamps
+    createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+    updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+});
+
+// ============================================
+// COMMUNICATION LOGS
+// ============================================
+
+export const communicationLogs = sqliteTable("communication_logs", {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+
+    // Type and channel
+    channel: text("channel").notNull(), // EMAIL, SMS, WHATSAPP, CALL, PUSH
+    direction: text("direction").notNull().default("OUTBOUND"), // INBOUND, OUTBOUND
+
+    // Content
+    subject: text("subject"),
+    content: text("content").notNull(),
+    templateId: text("template_id"),
+
+    // Status
+    status: text("status").notNull().default("SENT"), // PENDING, SENT, DELIVERED, FAILED, READ
+
+    // Metadata
+    metadata: text("metadata"), // JSON stringified
+
+    // Timestamps
+    createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+    deliveredAt: text("delivered_at"),
+    readAt: text("read_at"),
+
+    // Relations
+    customerId: text("customer_id").references(() => customers.id),
+    loanId: text("loan_id").references(() => loans.id),
+    userId: text("user_id").references(() => users.id), // Who sent it
+});
+
+// ============================================
+// MARGIN CALLS
+// ============================================
+
+export const marginCalls = sqliteTable("margin_calls", {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+    callNumber: text("call_number").notNull().unique().$defaultFn(() => `MC-${Date.now()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`),
+
+    // Trigger details
+    triggerLtv: real("trigger_ltv").notNull(),
+    currentLtv: real("current_ltv").notNull(),
+    shortfallAmount: real("shortfall_amount").notNull(),
+
+    // Status
+    status: text("status").notNull().default("PENDING"), // PENDING, NOTIFIED, TOPPED_UP, LIQUIDATED, RESOLVED
+
+    // Resolution
+    topUpAmount: real("top_up_amount"),
+    topUpDate: text("top_up_date"),
+    liquidationAmount: real("liquidation_amount"),
+    liquidationDate: text("liquidation_date"),
+
+    // Timestamps
+    createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+    notifiedAt: text("notified_at"),
+    dueDate: text("due_date").notNull(),
+    resolvedAt: text("resolved_at"),
+
+    // Relations
+    loanId: text("loan_id").notNull().references(() => loans.id),
+    customerId: text("customer_id").notNull().references(() => customers.id),
+    collateralId: text("collateral_id").references(() => collaterals.id),
+});
+
+// ============================================
+// LEGAL CASES (NPA)
+// ============================================
+
+export const legalCases = sqliteTable("legal_cases", {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+    caseNumber: text("case_number").notNull().unique(),
+
+    // Case details
+    caseType: text("case_type").notNull(), // ARBITRATION, CIVIL_SUIT, DRT, SARFAESI
+    courtName: text("court_name"),
+
+    // Status
+    status: text("status").notNull().default("FILED"), // FILED, HEARING, JUDGEMENT, EXECUTION, CLOSED
+
+    // Dates
+    filingDate: text("filing_date").notNull(),
+    nextHearingDate: text("next_hearing_date"),
+    judgementDate: text("judgement_date"),
+
+    // Amounts
+    claimAmount: real("claim_amount").notNull(),
+    recoveredAmount: real("recovered_amount").default(0),
+
+    // Notes
+    notes: text("notes"),
+
+    // Timestamps
+    createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+    updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+
+    // Relations
+    loanId: text("loan_id").notNull().references(() => loans.id),
+    customerId: text("customer_id").notNull().references(() => customers.id),
+    assignedToId: text("assigned_to_id").references(() => users.id),
+});
+
+// ============================================
+// RECOVERY AGENTS
+// ============================================
+
+export const recoveryAgents = sqliteTable("recovery_agents", {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+
+    // Agent details
+    name: text("name").notNull(),
+    code: text("code").notNull().unique(),
+    agencyName: text("agency_name"),
+
+    // Contact
+    phone: text("phone").notNull(),
+    email: text("email"),
+
+    // Performance
+    totalAssigned: integer("total_assigned").default(0),
+    totalRecovered: real("total_recovered").default(0),
+    successRate: real("success_rate").default(0),
+
+    // Status
+    isActive: integer("is_active", { mode: "boolean" }).default(true),
+
+    // Timestamps
+    createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+    updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+});
+
+export const recoveryAssignments = sqliteTable("recovery_assignments", {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+
+    // Status
+    status: text("status").notNull().default("ASSIGNED"), // ASSIGNED, IN_PROGRESS, RECOVERED, FAILED, REASSIGNED
+
+    // Amounts
+    assignedAmount: real("assigned_amount").notNull(),
+    recoveredAmount: real("recovered_amount").default(0),
+
+    // Notes
+    notes: text("notes"),
+
+    // Timestamps
+    assignedAt: text("assigned_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+    lastContactAt: text("last_contact_at"),
+    closedAt: text("closed_at"),
+
+    // Relations
+    agentId: text("agent_id").notNull().references(() => recoveryAgents.id),
+    loanId: text("loan_id").notNull().references(() => loans.id),
+    legalCaseId: text("legal_case_id").references(() => legalCases.id),
+});
+
+// ============================================
+// AUTO-APPROVAL RULES
+// ============================================
+
+export const autoApprovalRules = sqliteTable("auto_approval_rules", {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+
+    // Rule details
+    name: text("name").notNull(),
+    description: text("description"),
+    priority: integer("priority").default(0),
+
+    // Conditions (JSON)
+    conditions: text("conditions").notNull(), // JSON: { minCreditScore, maxLtv, minIncome, etc. }
+
+    // Actions
+    autoApprove: integer("auto_approve", { mode: "boolean" }).default(false),
+    autoReject: integer("auto_reject", { mode: "boolean" }).default(false),
+    assignToRole: text("assign_to_role"), // UNDERWRITER, MANAGER, etc.
+
+    // Status
+    isActive: integer("is_active", { mode: "boolean" }).default(true),
+
+    // Timestamps
+    createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+    updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+
+    // Relations
+    productId: text("product_id").references(() => loanProducts.id), // null = all products
+    createdById: text("created_by_id").references(() => users.id),
+});
+
+// ============================================
+// SYSTEM SETTINGS
+// ============================================
+
+export const systemSettings = sqliteTable("system_settings", {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+
+    // Setting key-value
+    key: text("key").notNull().unique(),
+    value: text("value").notNull(),
+    type: text("type").notNull().default("STRING"), // STRING, NUMBER, BOOLEAN, JSON
+
+    // Metadata
+    description: text("description"),
+    category: text("category").notNull().default("GENERAL"), // GENERAL, INTEGRATION, RISK, NOTIFICATION
+
+    // Timestamps
+    updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+    updatedById: text("updated_by_id").references(() => users.id),
+});
+
+// ============================================
+// REPORT TEMPLATES
+// ============================================
+
+export const reportTemplates = sqliteTable("report_templates", {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+
+    // Template details
+    name: text("name").notNull(),
+    description: text("description"),
+    type: text("type").notNull(), // REGULATORY, OPERATIONAL, ANALYTICS, CUSTOM
+    format: text("format").notNull().default("PDF"), // PDF, EXCEL, CSV
+
+    // Template configuration (JSON)
+    config: text("config").notNull(), // JSON: columns, filters, grouping, etc.
+
+    // Schedule
+    isScheduled: integer("is_scheduled", { mode: "boolean" }).default(false),
+    scheduleFrequency: text("schedule_frequency"), // DAILY, WEEKLY, MONTHLY
+
+    // Status
+    isActive: integer("is_active", { mode: "boolean" }).default(true),
+
+    // Timestamps
+    createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+    updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+    lastRunAt: text("last_run_at"),
+
+    // Relations
+    createdById: text("created_by_id").references(() => users.id),
+});
+
+// ============================================
+// PARTNER APPLICATIONS (Bulk uploads)
+// ============================================
+
+export const partnerApplications = sqliteTable("partner_applications", {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+
+    // Batch details
+    batchId: text("batch_id").notNull(),
+    fileName: text("file_name"),
+
+    // Status
+    status: text("status").notNull().default("PENDING"), // PENDING, PROCESSING, COMPLETED, FAILED
+
+    // Counts
+    totalRecords: integer("total_records").default(0),
+    successCount: integer("success_count").default(0),
+    failedCount: integer("failed_count").default(0),
+
+    // Errors (JSON)
+    errors: text("errors"),
+
+    // Timestamps
+    uploadedAt: text("uploaded_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+    processedAt: text("processed_at"),
+
+    // Relations
+    partnerId: text("partner_id").notNull().references(() => partners.id),
+    uploadedById: text("uploaded_by_id").references(() => users.id),
+});
+
+// ============================================
+// PROVISIONING STAGES (IND AS)
+// ============================================
+
+export const provisioningStages = sqliteTable("provisioning_stages", {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+
+    // Stage as per IND AS 109
+    stage: integer("stage").notNull(), // 1, 2, or 3
+
+    // Provision amounts
+    exposureAmount: real("exposure_amount").notNull(),
+    provisionPercent: real("provision_percent").notNull(),
+    provisionAmount: real("provision_amount").notNull(),
+
+    // Days past due
+    dpd: integer("dpd").notNull(), // Days Past Due
+
+    // Snapshot date
+    snapshotDate: text("snapshot_date").notNull(),
+
+    // Relations
+    loanId: text("loan_id").notNull().references(() => loans.id),
+});
+
+// ============================================
+// CREDIT LINES (User Collateral Tree - Root)
+// ============================================
+
+export const creditLines = sqliteTable("credit_lines", {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+    lineNumber: text("line_number").notNull().unique().$defaultFn(() => `CL-${Date.now()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`),
+
+    // Limits
+    sanctionedLimit: real("sanctioned_limit").notNull(),
+    utilizedAmount: real("utilized_amount").default(0),
+    availableLimit: real("available_limit").notNull(),
+
+    // Status
+    status: text("status").notNull().default("ACTIVE"), // ACTIVE, FROZEN, CLOSED, DEFAULTED
+
+    // Risk
+    riskCategory: text("risk_category").default("STANDARD"), // STANDARD, WATCH, SUBSTANDARD, DOUBTFUL, LOSS
+
+    // Validity
+    sanctionDate: text("sanction_date").notNull(),
+    expiryDate: text("expiry_date"),
+
+    // Timestamps
+    createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+    updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+
+    // Relations - One credit line per customer
+    customerId: text("customer_id").notNull().unique().references(() => customers.id),
+});
+
+// ============================================
+// CREDIT ACCOUNTS (Credit cards, Overdrafts)
+// ============================================
+
+export const creditAccounts = sqliteTable("credit_accounts", {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+    accountNumber: text("account_number").notNull().unique(),
+
+    // Type
+    accountType: text("account_type").notNull(), // CREDIT_CARD, OVERDRAFT, LINE_OF_CREDIT, REVOLVING
+
+    // Card details (if credit card)
+    cardLastFour: text("card_last_four"),
+    cardNetwork: text("card_network"), // VISA, MASTERCARD, RUPAY, AMEX
+    cardVariant: text("card_variant"), // GOLD, PLATINUM, SIGNATURE, etc.
+
+    // Limits
+    creditLimit: real("credit_limit").notNull(),
+    currentBalance: real("current_balance").default(0),
+    availableCredit: real("available_credit").notNull(),
+    minimumDue: real("minimum_due").default(0),
+
+    // Billing
+    billingCycleDay: integer("billing_cycle_day").default(1),
+    dueDate: text("due_date"),
+    statementDate: text("statement_date"),
+
+    // Status
+    status: text("status").notNull().default("ACTIVE"), // ACTIVE, BLOCKED, CLOSED, DELINQUENT
+
+    // Interest
+    interestRate: real("interest_rate").default(0),
+
+    // Timestamps
+    createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+    updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+
+    // Relations
+    creditLineId: text("credit_line_id").notNull().references(() => creditLines.id),
+});
+
+// ============================================
+// CREDIT TRANSACTIONS (Leaf nodes)
+// ============================================
+
+export const creditTransactions = sqliteTable("credit_transactions", {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+    transactionId: text("transaction_id").notNull().unique().$defaultFn(() => `TXN-${Date.now()}-${Math.random().toString(36).substr(2, 8).toUpperCase()}`),
+
+    // Transaction details
+    type: text("type").notNull(), // PURCHASE, CASH_ADVANCE, REFUND, PAYMENT, FEE, INTEREST, REVERSAL
+    description: text("description").notNull(),
+    merchantName: text("merchant_name"),
+    merchantCategory: text("merchant_category"), // MCC code description
+
+    // Amount
+    amount: real("amount").notNull(),
+    currency: text("currency").default("INR"),
+
+    // Status
+    status: text("status").notNull().default("COMPLETED"), // PENDING, COMPLETED, REVERSED, DISPUTED
+
+    // Location
+    location: text("location"),
+    isInternational: integer("is_international", { mode: "boolean" }).default(false),
+
+    // Timestamps
+    transactionDate: text("transaction_date").notNull(),
+    postingDate: text("posting_date"),
+    createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+
+    // Relations
+    creditAccountId: text("credit_account_id").notNull().references(() => creditAccounts.id),
+});
+
+// ============================================
+// WATCHLIST
+// ============================================
+
+export const watchlist = sqliteTable("watchlist", {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+
+    // Entity
+    entityType: text("entity_type").notNull(), // CUSTOMER, PAN, AADHAAR, PHONE, EMAIL
+    entityValue: text("entity_value").notNull(),
+
+    // Reason
+    listType: text("list_type").notNull(), // BLACKLIST, WATCHLIST, GREYLIST
+    reason: text("reason").notNull(),
+    source: text("source"), // INTERNAL, RBI, CIBIL, etc.
+
+    // Status
+    isActive: integer("is_active", { mode: "boolean" }).default(true),
+
+    // Timestamps
+    addedAt: text("added_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+    expiresAt: text("expires_at"),
+    removedAt: text("removed_at"),
+
+    // Relations
+    addedById: text("added_by_id").references(() => users.id),
+    customerId: text("customer_id").references(() => customers.id),
+});
+
 // Type exports for insert/select operations
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
@@ -509,3 +973,34 @@ export type NewNotification = typeof notifications.$inferInsert;
 export type Approval = typeof approvals.$inferSelect;
 export type NewApproval = typeof approvals.$inferInsert;
 
+// New admin tables
+export type Partner = typeof partners.$inferSelect;
+export type NewPartner = typeof partners.$inferInsert;
+export type CommunicationLog = typeof communicationLogs.$inferSelect;
+export type NewCommunicationLog = typeof communicationLogs.$inferInsert;
+export type MarginCall = typeof marginCalls.$inferSelect;
+export type NewMarginCall = typeof marginCalls.$inferInsert;
+export type LegalCase = typeof legalCases.$inferSelect;
+export type NewLegalCase = typeof legalCases.$inferInsert;
+export type RecoveryAgent = typeof recoveryAgents.$inferSelect;
+export type NewRecoveryAgent = typeof recoveryAgents.$inferInsert;
+export type RecoveryAssignment = typeof recoveryAssignments.$inferSelect;
+export type NewRecoveryAssignment = typeof recoveryAssignments.$inferInsert;
+export type AutoApprovalRule = typeof autoApprovalRules.$inferSelect;
+export type NewAutoApprovalRule = typeof autoApprovalRules.$inferInsert;
+export type SystemSetting = typeof systemSettings.$inferSelect;
+export type NewSystemSetting = typeof systemSettings.$inferInsert;
+export type ReportTemplate = typeof reportTemplates.$inferSelect;
+export type NewReportTemplate = typeof reportTemplates.$inferInsert;
+export type PartnerApplication = typeof partnerApplications.$inferSelect;
+export type NewPartnerApplication = typeof partnerApplications.$inferInsert;
+export type ProvisioningStage = typeof provisioningStages.$inferSelect;
+export type NewProvisioningStage = typeof provisioningStages.$inferInsert;
+export type CreditLine = typeof creditLines.$inferSelect;
+export type NewCreditLine = typeof creditLines.$inferInsert;
+export type CreditAccount = typeof creditAccounts.$inferSelect;
+export type NewCreditAccount = typeof creditAccounts.$inferInsert;
+export type CreditTransaction = typeof creditTransactions.$inferSelect;
+export type NewCreditTransaction = typeof creditTransactions.$inferInsert;
+export type Watchlist = typeof watchlist.$inferSelect;
+export type NewWatchlist = typeof watchlist.$inferInsert;

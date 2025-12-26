@@ -82,10 +82,11 @@ async function getCollaterals() {
 }
 
 type CollateralPageProps = {
-  searchParams?: SearchParams;
+  searchParams: Promise<SearchParams>;
 };
 
-export default async function CollateralPage({ searchParams }: CollateralPageProps) {
+export default async function CollateralPage(props: CollateralPageProps) {
+  const searchParams = await props.searchParams;
   const session = await auth();
   const userRole = session?.user?.role;
   const allCollaterals = await getCollaterals();
@@ -370,9 +371,8 @@ export default async function CollateralPage({ searchParams }: CollateralPagePro
                             {formatCurrency(collateral.currentValue)}
                           </p>
                           <p
-                            className={`text-xs font-mono ${
-                              change >= 0 ? "text-success" : "text-destructive"
-                            }`}
+                            className={`text-xs font-mono ${change >= 0 ? "text-success" : "text-destructive"
+                              }`}
                           >
                             {change >= 0 ? "+" : ""}
                             {changePercent.toFixed(1)}%

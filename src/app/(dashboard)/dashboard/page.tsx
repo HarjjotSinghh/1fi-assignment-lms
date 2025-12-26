@@ -1,5 +1,5 @@
 import { db } from "@/db";
-import { loanProducts, loanApplications, loans, collaterals, customers, auditLogs, users } from "@/db/schema";
+import { loanProducts, loanApplications, loans, collaterals, customers, auditLogs, users, partners, marginCalls } from "@/db/schema";
 import { count, sum, eq, gt, desc, and, or, sql } from "drizzle-orm";
 import Link from "next/link";
 import {
@@ -35,6 +35,9 @@ async function getDashboardStats() {
       pendingApplications,
       totalDisbursed,
       totalCollateralValue,
+      activePartnersCount,
+      npaCount,
+      marginCallCount,
     ] = await Promise.all([
       db.select({ count: count() }).from(loanProducts).then((r) => r[0]?.count ?? 0),
       db.select({ count: count() }).from(loanApplications).then((r) => r[0]?.count ?? 0),
@@ -44,6 +47,9 @@ async function getDashboardStats() {
       db.select({ count: count() }).from(loanApplications).where(eq(loanApplications.status, "SUBMITTED")).then((r) => r[0]?.count ?? 0),
       db.select({ total: sum(loans.disbursedAmount) }).from(loans).then((r) => r[0]?.total ?? 0),
       db.select({ total: sum(collaterals.currentValue) }).from(collaterals).where(eq(collaterals.pledgeStatus, "PLEDGED")).then((r) => r[0]?.total ?? 0),
+      db.select({ count: count() }).from(partners).where(eq(partners.isActive, true)).then((r) => r[0]?.count ?? 0),
+      db.select({ count: count() }).from(loans).where(or(eq(loans.status, "NPA"), eq(loans.status, "DEFAULTED"))).then((r) => r[0]?.count ?? 0),
+      db.select({ count: count() }).from(marginCalls).where(eq(marginCalls.status, "PENDING")).then((r) => r[0]?.count ?? 0),
     ]);
 
     return {
@@ -55,6 +61,9 @@ async function getDashboardStats() {
       pendingApplications,
       totalDisbursed: Number(totalDisbursed),
       totalCollateralValue: Number(totalCollateralValue),
+      activePartnersCount,
+      npaCount,
+      marginCallCount,
     };
   } catch (error) {
     return {
@@ -66,6 +75,9 @@ async function getDashboardStats() {
       pendingApplications: 0,
       totalDisbursed: 0,
       totalCollateralValue: 0,
+      activePartnersCount: 0,
+      npaCount: 0,
+      marginCallCount: 0,
     };
   }
 }
@@ -79,6 +91,21 @@ async function getDashboardAlerts() {
       icon: typeof RiAlertLine;
       tone: "warning" | "info" | "success";
     }> = [];
+
+    // Check for pending margin calls
+    const [pendingMarginCalls] = await db
+      .select({ count: count() })
+      .from(marginCalls)
+      .where(eq(marginCalls.status, "PENDING"));
+
+    if ((pendingMarginCalls?.count ?? 0) > 0) {
+      alerts.push({
+        title: "Margin Calls Triggered",
+        description: `${pendingMarginCalls.count} accounts breached LTV limits. Immediate action required.`,
+        icon: RiAlertLine,
+        tone: "warning",
+      });
+    }
 
     // Check for high LTV loans (over 55%)
     const [highLtvLoans] = await db
@@ -203,7 +230,14 @@ function getActivityIcon(action: string) {
   return iconMap[action] || RiFileListLine;
 }
 
-export default async function DashboardPage() {
+import { SearchParams } from "@/lib/pagination";
+
+type DashboardPageProps = {
+  searchParams: Promise<SearchParams>;
+};
+
+export default async function DashboardPage(props: DashboardPageProps) {
+  const searchParams = await props.searchParams;
   const stats = await getDashboardStats();
 
   const outstanding = stats.totalDisbursed * 0.62;
@@ -232,22 +266,28 @@ export default async function DashboardPage() {
       direction: "up",
     },
     {
-      label: "Avg approval time",
-      value: "2.4 days",
-      trend: "-14%",
-      direction: "down",
+      label: "Portfolio Risk (NPA)",
+      value: `${stats.npaCount} accounts`,
+      trend: stats.npaCount > 0 ? "Action needed" : "Healthy",
+      direction: stats.npaCount > 0 ? "down" : "up",
+    },
+    {
+      label: "Margin Calls",
+      value: stats.marginCallCount.toString(),
+      trend: "Pending action",
+      direction: stats.marginCallCount > 0 ? "down" : "up",
     },
   ];
 
   const operationalStats = [
     {
-      title: "Loan Products",
-      value: stats.productsCount,
+      title: "Partners",
+      value: stats.activePartnersCount,
       icon: RiStackLine,
-      href: "/products",
+      href: "/configuration/partners",
       color: "text-primary",
       bgColor: "bg-primary/10",
-      subtitle: "Active product catalog",
+      subtitle: "Active integrations",
     },
     {
       title: "Applications",
@@ -345,9 +385,8 @@ export default async function DashboardPage() {
                   <div className="flex items-start justify-between">
                     <p className="text-xs text-muted-foreground">{stat.label}</p>
                     <div
-                      className={`flex items-center gap-1 text-xs font-medium ${
-                        stat.direction === "down" ? "text-destructive" : "text-success"
-                      }`}
+                      className={`flex items-center gap-1 text-xs font-medium ${stat.direction === "down" ? "text-destructive" : "text-success"
+                        }`}
                     >
                       {stat.direction === "down" ? (
                         <LucideArrowDownRight className="h-3.5 w-3.5" />
@@ -474,8 +513,8 @@ export default async function DashboardPage() {
                 alert.tone === "warning"
                   ? "border-warning/30 bg-warning/10"
                   : alert.tone === "success"
-                  ? "border-success/30 bg-success/10"
-                  : "border-info/30 bg-info/10";
+                    ? "border-success/30 bg-success/10"
+                    : "border-info/30 bg-info/10";
 
               return (
                 <Alert key={alert.title} className={`${toneStyles} rounded-none`}>

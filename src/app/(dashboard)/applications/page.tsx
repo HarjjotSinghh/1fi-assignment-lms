@@ -87,10 +87,11 @@ const statusIcons: Record<string, React.ReactNode> = {
 };
 
 type ApplicationsPageProps = {
-  searchParams?: SearchParams;
+  searchParams: Promise<SearchParams>;
 };
 
-export default async function ApplicationsPage({ searchParams }: ApplicationsPageProps) {
+export default async function ApplicationsPage(props: ApplicationsPageProps) {
+  const searchParams = await props.searchParams;
   const session = await auth();
   const userRole = session?.user?.role;
   const applications = await getApplications();

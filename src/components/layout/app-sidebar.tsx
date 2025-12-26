@@ -19,6 +19,12 @@ import {
   RiHistoryLine,
   RiCheckboxCircleLine,
   RiBookOpenLine,
+  RiBankLine,
+  RiHammerLine,
+  RiEyeLine,
+  RiNodeTree,
+  RiBuilding2Line,
+  RiFlowChart,
 } from "react-icons/ri";
 import { cn } from "@/lib/utils";
 import {
@@ -46,75 +52,100 @@ type NavItem = {
 
 const mainNavItems: NavItem[] = [
   {
-    title: "Dashboard",
+    title: "Command Center",
     href: "/dashboard",
     icon: RiDashboardLine,
-    // Dashboard is visible to all authenticated users
   },
   {
     title: "Analytics",
     href: "/analytics",
     icon: RiLineChartLine,
-    minRole: "MANAGER", // Only MANAGER and ADMIN can see analytics
+    minRole: "MANAGER",
   },
-  {
-    title: "Loan Products",
-    href: "/products",
-    icon: RiStackLine,
-    // Products are viewable by all, but creation is restricted at component level
-  },
+];
+
+const lendingNavItems: NavItem[] = [
   {
     title: "Applications",
     href: "/applications",
     icon: RiFileListLine,
-    // Applications visible to all (users can create their own)
   },
   {
-    title: "Active Loans",
+    title: "Loan Accounts",
     href: "/loans",
     icon: RiMoneyDollarCircleLine,
-    // Loans visible to all (users see their own)
-  },
-  {
-    title: "Collateral",
-    href: "/collateral",
-    icon: RiShieldLine,
-    // Collateral visible to all (users see their own)
   },
   {
     title: "Customers",
     href: "/customers",
     icon: RiUserLine,
-    minRole: "MANAGER", // Customer list is for managers and admins
+  },
+  {
+    title: "Collateral Book",
+    href: "/collateral",
+    icon: RiShieldLine,
+  },
+  {
+    title: "User Collateral Tree",
+    href: "/collateral/tree",
+    icon: RiNodeTree,
+    minRole: "MANAGER",
+  },
+  {
+    title: "Collections",
+    href: "/collections",
+    icon: RiBankLine,
+    minRole: "MANAGER",
   },
 ];
 
-const operationsNavItems: NavItem[] = [
+const riskNavItems: NavItem[] = [
   {
-    title: "Notifications",
-    href: "/notifications",
-    icon: RiNotification3Line,
+    title: "Legal Cases",
+    href: "/legal",
+    icon: RiHammerLine,
+    minRole: "MANAGER",
   },
   {
-    title: "Activity Log",
+    title: "Watchlist",
+    href: "/watchlist",
+    icon: RiEyeLine,
+    minRole: "ADMIN",
+  },
+  {
+    title: "Audit Log",
     href: "/activity",
     icon: RiHistoryLine,
-    minRole: "MANAGER",
-  },
-  {
-    title: "Approvals",
-    href: "/approvals",
-    icon: RiCheckboxCircleLine,
-    minRole: "MANAGER",
-  },
-  {
-    title: "Playbook",
-    href: "/playbook",
-    icon: RiBookOpenLine,
+    minRole: "ADMIN",
   },
 ];
 
-const SUPER_ADMIN_EMAIL = "harjjotsinghh@gmail.com";
+const configNavItems: NavItem[] = [
+  {
+    title: "Partners",
+    href: "/configuration/partners",
+    icon: RiBuilding2Line,
+    minRole: "ADMIN",
+  },
+  {
+    title: "Loan Products",
+    href: "/products",
+    icon: RiStackLine,
+    minRole: "ADMIN",
+  },
+  {
+    title: "Decision Rules",
+    href: "/configuration/rules",
+    icon: RiFlowChart,
+    minRole: "ADMIN",
+  },
+  {
+    title: "System Users",
+    href: "/configuration/users",
+    icon: RiAdminLine,
+    minRole: "ADMIN",
+  },
+];
 
 interface AppSidebarProps {
   userRole?: string;
@@ -123,145 +154,51 @@ interface AppSidebarProps {
 
 export function AppSidebar({ userRole, userEmail }: AppSidebarProps) {
   const pathname = usePathname();
-  
-  // Filter nav items based on user role
-  const visibleNavItems = mainNavItems.filter((item) => {
-    if (!item.minRole) return true; // No role restriction
-    return hasMinimumRole(userRole, item.minRole);
-  });
 
-  const visibleOperationsItems = operationsNavItems.filter((item) => {
-    if (!item.minRole) return true;
-    return hasMinimumRole(userRole, item.minRole);
-  });
-
-  // Check if user can create applications
-  const canCreateApplication = hasMinimumRole(userRole, "USER");
+  // Helper to filter nav items
+  const filterItems = (items: NavItem[]) =>
+    items.filter((item) => !item.minRole || hasMinimumRole(userRole, item.minRole));
 
   return (
-    <Sidebar className="border-r border-sidebar-border">
+    <Sidebar className="border-r border-sidebar-border bg-sidebar text-sidebar-foreground">
       <SidebarHeader className="border-b border-sidebar-border p-4">
         <Link href="/" className="flex items-center gap-3 group">
-          <div className="w-10 h-10 bg-primary flex items-center justify-center">
+          <div className="w-10 h-10 bg-primary flex items-center justify-center rounded-sm">
             <RiWallet3Line className="w-5 h-5 text-primary-foreground" />
           </div>
           <div className="flex flex-col">
             <span className="font-heading text-lg font-bold tracking-tight text-sidebar-foreground">
               Fiquity Technology
             </span>
-            <span className="text-xs text-sidebar-foreground/60 font-mono">
-              Lending System
+            <span className="text-xs text-sidebar-foreground/60 font-mono group-hover:text-primary transition-colors">
+              Admin Console
             </span>
           </div>
         </Link>
       </SidebarHeader>
 
-      <SidebarContent className="p-2">
-        {/* Quick Action - Only show if user has permission to create applications */}
-        {canCreateApplication && (
-          <div className="px-2 py-3">
-            <Link href="/applications/new">
-              <Button
-                className="w-full justify-start gap-2 bg-primary hover:bg-primary/90 text-primary-foreground press-scale"
-                size="lg"
-              >
-                <RiAddCircleLine className="w-4 h-4" />
-                <span>New Application</span>
-              </Button>
-            </Link>
-          </div>
-        )}
+      <SidebarContent className="p-2 space-y-4">
+        <div className="px-2 py-2">
+          <Link href="/applications/new">
+            <Button
+              className="w-full justify-start gap-2 bg-primary hover:bg-primary/90 text-primary-foreground press-scale shadow-sm rounded-sm"
+              size="default"
+            >
+              <RiAddCircleLine className="w-4 h-4" />
+              <span>Create Application</span>
+            </Button>
+          </Link>
+        </div>
 
-        {/* Main Navigation */}
-        <SidebarGroup>
-          <SidebarGroupLabel className="text-xs font-medium text-sidebar-foreground/50 uppercase tracking-wider px-2">
-            Main Menu
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {visibleNavItems.map((item) => {
-                const isActive =
-                  pathname === item.href ||
-                  (item.href !== "/dashboard" && pathname.startsWith(item.href));
-
-                return (
-                  <SidebarMenuItem key={item.href}>
-                    <SidebarMenuButton
-                      asChild
-                      isActive={isActive}
-                      className={cn(
-                        "group relative flex items-center gap-3 px-3 py-2.5 transition-all duration-200",
-                        isActive &&
-                          "bg-sidebar-accent text-sidebar-accent-foreground"
-                      )}
-                    >
-                      <Link href={item.href}>
-                        <item.icon
-                          className={cn(
-                            "w-4 h-4 transition-transform duration-200 group-hover:scale-110",
-                            isActive && "text-sidebar-primary"
-                          )}
-                        />
-                        <span className="font-medium">{item.title}</span>
-                        {isActive && (
-                          <RiArrowRightSLine className="w-4 h-4 ml-auto opacity-60" />
-                        )}
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                );
-              })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        {/* Operations Navigation */}
-        <SidebarGroup>
-          <SidebarGroupLabel className="text-xs font-medium text-sidebar-foreground/50 uppercase tracking-wider px-2">
-            Operations
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {visibleOperationsItems.map((item) => {
-                const isActive =
-                  pathname === item.href ||
-                  (item.href !== "/dashboard" && pathname.startsWith(item.href));
-
-                return (
-                  <SidebarMenuItem key={item.href}>
-                    <SidebarMenuButton
-                      asChild
-                      isActive={isActive}
-                      className={cn(
-                        "group relative flex items-center gap-3 px-3 py-2.5 transition-all duration-200",
-                        isActive &&
-                          "bg-sidebar-accent text-sidebar-accent-foreground"
-                      )}
-                    >
-                      <Link href={item.href}>
-                        <item.icon
-                          className={cn(
-                            "w-4 h-4 transition-transform duration-200 group-hover:scale-110",
-                            isActive && "text-sidebar-primary"
-                          )}
-                        />
-                        <span className="font-medium">{item.title}</span>
-                        {isActive && (
-                          <RiArrowRightSLine className="w-4 h-4 ml-auto opacity-60" />
-                        )}
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                );
-              })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        <NavGroup label="Overview" items={filterItems(mainNavItems)} pathname={pathname} />
+        <NavGroup label="Lending Operations" items={filterItems(lendingNavItems)} pathname={pathname} />
+        <NavGroup label="Risk & Compliance" items={filterItems(riskNavItems)} pathname={pathname} />
+        <NavGroup label="Configuration" items={filterItems(configNavItems)} pathname={pathname} />
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-sidebar-border p-3">
+      <SidebarFooter className="border-t border-sidebar-border p-3 bg-muted/50">
         <div className="flex items-center justify-between px-2 mb-2">
-          <span className="text-sm text-sidebar-foreground/70">Theme</span>
+          <span className="text-xs font-semibold text-sidebar-foreground/70 uppercase tracking-wider">Theme</span>
           <ThemeToggle />
         </div>
         <SidebarMenu>
@@ -272,32 +209,62 @@ export function AppSidebar({ userRole, userEmail }: AppSidebarProps) {
                 className="flex items-center gap-3 text-sidebar-foreground/70 hover:text-sidebar-foreground"
               >
                 <RiSettings3Line className="w-4 h-4" />
-                <span className="font-medium">Settings</span>
+                <span className="font-medium">Global Settings</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
-        {userEmail === SUPER_ADMIN_EMAIL && (
-          <SidebarMenu className="mt-2">
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild className="px-3 py-2.5">
-                <Link
-                  href="/admin/dashboard"
-                  className="flex items-center gap-3 text-destructive hover:text-destructive"
-                >
-                  <RiAdminLine className="w-4 h-4" />
-                  <span className="font-medium">Super Admin</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        )}
-        <div className="mt-3 px-3">
-          <p className="text-xs text-sidebar-foreground/40 font-mono">
-            v1.0.0 • 1Fi NBFC
-          </p>
+
+        <div className="mt-3 px-3 flex items-center justify-between text-xs text-sidebar-foreground/40 font-mono">
+          <span>v2.4.0</span>
+          <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" title="System Online"></span>
         </div>
       </SidebarFooter>
     </Sidebar>
+  );
+}
+
+function NavGroup({ label, items, pathname }: { label: string; items: NavItem[]; pathname: string }) {
+  if (items.length === 0) return null;
+  return (
+    <SidebarGroup>
+      <SidebarGroupLabel className="text-[10px] font-bold text-sidebar-foreground/50 uppercase tracking-widest px-2 mb-1">
+        {label}
+      </SidebarGroupLabel>
+      <SidebarGroupContent>
+        <SidebarMenu>
+          {items.map((item) => {
+            const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href));
+            return (
+              <SidebarMenuItem key={item.href}>
+                <SidebarMenuButton
+                  asChild
+                  isActive={isActive}
+                  className={cn(
+                    "group relative flex items-center gap-3 px-3 py-2 transition-all duration-200 rounded-sm",
+                    isActive
+                      ? "bg-primary/10 text-primary font-medium"
+                      : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                  )}
+                >
+                  <Link href={item.href}>
+                    <item.icon
+                      className={cn(
+                        "w-4 h-4 transition-transform duration-200",
+                        isActive ? "text-primary scale-105" : "text-sidebar-foreground/60 group-hover:scale-110"
+                      )}
+                    />
+                    <span className="flex-1">{item.title}</span>
+                    {isActive && (
+                      <RiArrowRightSLine className="w-4 h-4 ml-auto text-primary" />
+                    )}
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            );
+          })}
+        </SidebarMenu>
+      </SidebarGroupContent>
+    </SidebarGroup>
   );
 }

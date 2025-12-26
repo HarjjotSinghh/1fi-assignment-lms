@@ -1,5 +1,10 @@
 export type SearchParams = Record<string, string | string[] | undefined>
 
+export type PageProps = {
+  params: Promise<Record<string, string>>;
+  searchParams: Promise<SearchParams>;
+}
+
 export function getStringParam(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value
 }

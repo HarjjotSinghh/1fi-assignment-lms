@@ -50,18 +50,20 @@ async function getProducts() {
 }
 
 type ProductsPageProps = {
-  searchParams?: SearchParams;
+  searchParams: Promise<SearchParams>;
 };
 
-export default async function ProductsPage({ searchParams }: ProductsPageProps) {
+export default async function ProductsPage(props: ProductsPageProps) {
+  const searchParams = await props.searchParams;
   const session = await auth();
   const userRole = session?.user?.role;
   const products = await getProducts();
-  const {q, status, sort, page} = await searchParams as SearchParams;
-  const searchQuery = (getStringParam(q) ?? "").trim();
-  const statusFilter = getStringParam(status) ?? "all";
-  const sortBy = getStringParam(sort) ?? "recent";
-  const pageParam = Number(getStringParam(page));
+
+  const searchQuery = (getStringParam(searchParams?.q) ?? "").trim();
+  const statusFilter = getStringParam(searchParams?.status) ?? "all";
+  const sortBy = getStringParam(searchParams?.sort) ?? "recent";
+  const pageParam = Number(getStringParam(searchParams?.page));
+
   const currentPageParam = Number.isFinite(pageParam) && pageParam > 0 ? pageParam : 1;
   const normalizedQuery = searchQuery.toLowerCase();
   const pageSize = 6;

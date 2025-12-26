@@ -12,6 +12,7 @@ import {
   RiMore2Line,
   RiSearchLine,
   RiSettings3Line,
+  RiAddLine,
 } from "react-icons/ri";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -82,10 +83,11 @@ async function getLoans() {
 }
 
 type LoansPageProps = {
-  searchParams?: SearchParams;
+  searchParams: Promise<SearchParams>;
 };
 
-export default async function LoansPage({ searchParams }: LoansPageProps) {
+export default async function LoansPage(props: LoansPageProps) {
+  const searchParams = await props.searchParams;
   const session = await auth();
   const userRole = session?.user?.role;
   const allLoans = await getLoans();
@@ -169,6 +171,14 @@ export default async function LoansPage({ searchParams }: LoansPageProps) {
               </p>
             </div>
             <div className="flex items-center gap-2">
+              <ServerRoleGate userRole={userRole} permission="loans:manage">
+                <Button className="rounded-none gap-2" asChild>
+                  <Link href="/loans/new">
+                    <RiAddLine className="h-4 w-4" />
+                    Create Loan
+                  </Link>
+                </Button>
+              </ServerRoleGate>
               <ServerRoleGate userRole={userRole} permission="loans:export">
                 <Button variant="outline" className="rounded-none gap-2" asChild>
                   <a href="/api/export/loans" download>

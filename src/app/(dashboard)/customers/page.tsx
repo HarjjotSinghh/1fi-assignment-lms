@@ -60,10 +60,11 @@ async function getCustomers() {
 }
 
 type CustomersPageProps = {
-  searchParams?: SearchParams;
+  searchParams: Promise<SearchParams>;
 };
 
-export default async function CustomersPage({ searchParams }: CustomersPageProps) {
+export default async function CustomersPage(props: CustomersPageProps) {
+  const searchParams = await props.searchParams;
   const session = await auth();
   const userRole = session?.user?.role;
   const allCustomers = await getCustomers();

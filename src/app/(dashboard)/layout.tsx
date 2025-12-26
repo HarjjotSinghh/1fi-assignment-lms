@@ -8,6 +8,7 @@ import { SessionProvider } from "@/components/auth/session-provider";
 import { auth } from "@/lib/auth";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { NotificationCenter } from "@/components/layout/notification-center";
 
 export default async function DashboardLayout({
   children,
@@ -26,6 +27,7 @@ export default async function DashboardLayout({
             <Separator orientation="vertical" className="mr-2 h-4" />
             <div className="flex-1" />
             <ThemeToggle />
+            {session?.user && <NotificationCenter userId={session.user.id} />}
             {session?.user ? (
               <UserMenu user={session.user} />
             ) : (
