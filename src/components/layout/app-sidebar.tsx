@@ -174,7 +174,7 @@ const configNavItems: NavItem[] = [
   },
   {
     title: "API Docs",
-    href: "/api/docs",
+    href: "/docs",
     icon: RiBookOpenLine,
   },
   {
