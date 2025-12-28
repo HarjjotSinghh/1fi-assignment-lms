@@ -211,7 +211,7 @@ export function LoanApplicationForm({ products }: { products: LoanProduct[] }) {
   };
 
   return (
-    <div className="w-full max-w-2xl mx-auto py-8">
+    <div className="w-full py-8">
       {/* Progress indicator with Icons */}
       <motion.div
         className="mb-12"
