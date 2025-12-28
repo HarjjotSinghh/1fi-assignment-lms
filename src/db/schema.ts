@@ -941,6 +941,96 @@ export const watchlist = sqliteTable("watchlist", {
     customerId: text("customer_id").references(() => customers.id),
 });
 
+// ============================================
+// WEBHOOKS (Partner Notifications)
+// ============================================
+
+export const webhooks = sqliteTable("webhooks", {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+
+    // Webhook details
+    name: text("name").notNull(),
+    url: text("url").notNull(),
+    secret: text("secret").notNull(), // For HMAC signature verification
+
+    // Event subscriptions (JSON array of event types)
+    events: text("events").notNull(), // JSON: ["loan.approved", "loan.disbursed", "margin_call.triggered"]
+
+    // Status
+    isActive: integer("is_active", { mode: "boolean" }).default(true),
+
+    // Rate limiting
+    maxRetries: integer("max_retries").default(3),
+    retryDelayMs: integer("retry_delay_ms").default(5000),
+
+    // Timestamps
+    createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+    updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+    lastTriggeredAt: text("last_triggered_at"),
+
+    // Relations
+    partnerId: text("partner_id").references(() => partners.id),
+    createdById: text("created_by_id").references(() => users.id),
+});
+
+export const webhookDeliveries = sqliteTable("webhook_deliveries", {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+    deliveryId: text("delivery_id").notNull().unique().$defaultFn(() => `WH-${Date.now()}-${Math.random().toString(36).substr(2, 8).toUpperCase()}`),
+
+    // Event details
+    eventType: text("event_type").notNull(), // e.g., "loan.approved", "margin_call.triggered"
+    payload: text("payload").notNull(), // JSON stringified event payload
+
+    // Delivery status
+    status: text("status").notNull().default("PENDING"), // PENDING, SUCCESS, FAILED, RETRYING
+    attempts: integer("attempts").default(0),
+    maxAttempts: integer("max_attempts").default(3),
+
+    // Response details
+    responseCode: integer("response_code"),
+    responseBody: text("response_body"),
+    errorMessage: text("error_message"),
+
+    // Timestamps
+    createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+    lastAttemptAt: text("last_attempt_at"),
+    completedAt: text("completed_at"),
+    nextRetryAt: text("next_retry_at"),
+
+    // Relations
+    webhookId: text("webhook_id").notNull().references(() => webhooks.id),
+});
+
+// ============================================
+// NAV HISTORY (Collateral Value Tracking)
+// ============================================
+
+export const navHistory = sqliteTable("nav_history", {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+
+    // Fund identification
+    schemeCode: text("scheme_code").notNull(),
+    schemeName: text("scheme_name").notNull(),
+    amcName: text("amc_name"),
+
+    // NAV data
+    nav: real("nav").notNull(),
+    previousNav: real("previous_nav"),
+    changePercent: real("change_percent"),
+
+    // Valuation date
+    valuationDate: text("valuation_date").notNull(),
+
+    // Source of data
+    source: text("source").default("MANUAL"), // MANUAL, AMFI, RTA, API
+
+    // Timestamps
+    createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+
+    // Relations  
+    collateralId: text("collateral_id").references(() => collaterals.id),
+});
+
 // Type exports for insert/select operations
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
@@ -1004,3 +1094,9 @@ export type CreditTransaction = typeof creditTransactions.$inferSelect;
 export type NewCreditTransaction = typeof creditTransactions.$inferInsert;
 export type Watchlist = typeof watchlist.$inferSelect;
 export type NewWatchlist = typeof watchlist.$inferInsert;
+export type Webhook = typeof webhooks.$inferSelect;
+export type NewWebhook = typeof webhooks.$inferInsert;
+export type WebhookDelivery = typeof webhookDeliveries.$inferSelect;
+export type NewWebhookDelivery = typeof webhookDeliveries.$inferInsert;
+export type NavHistory = typeof navHistory.$inferSelect;
+export type NewNavHistory = typeof navHistory.$inferInsert;

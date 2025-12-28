@@ -160,6 +160,12 @@ export default async function LoanDetailPage({ params }: LoanDetailPageProps) {
             emiAmount={loan.emiAmount}
           />
           <Button variant="outline" className="rounded-none gap-2" asChild>
+            <Link href={`/loans/${id}/documents`}>
+              <RiFileListLine className="h-4 w-4" />
+              Documents
+            </Link>
+          </Button>
+          <Button variant="outline" className="rounded-none gap-2" asChild>
             <Link href={`/api/export/loans?id=${id}`}>
               <RiDownloadLine className="h-4 w-4" />
               Export

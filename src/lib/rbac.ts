@@ -101,7 +101,7 @@ const roleHierarchy: Record<Role, number> = {
  */
 export function hasPermission(role: Role | string | undefined | null, permission: Permission): boolean {
     if (!role) return false;
-    const validRole = role as Role;
+    const validRole = (role as string).toUpperCase() as Role;
     const permissions = rolePermissions[validRole];
     if (!permissions) return false;
     return permissions.includes(permission);
@@ -128,7 +128,8 @@ export function hasAllPermissions(role: Role | string | undefined | null, permis
  */
 export function hasMinimumRole(userRole: Role | string | undefined | null, minimumRole: Role): boolean {
     if (!userRole) return false;
-    const userLevel = roleHierarchy[userRole as Role];
+    const normalizedRole = (userRole as string).toUpperCase() as Role;
+    const userLevel = roleHierarchy[normalizedRole];
     const requiredLevel = roleHierarchy[minimumRole];
     if (!userLevel || !requiredLevel) return false;
     return userLevel >= requiredLevel;
@@ -137,27 +138,31 @@ export function hasMinimumRole(userRole: Role | string | undefined | null, minim
 /**
  * Get all permissions for a role
  */
-export function getPermissionsForRole(role: Role): Permission[] {
-    return rolePermissions[role] || [];
+export function getPermissionsForRole(role: Role | string): Permission[] {
+    const normalizedRole = (role as string).toUpperCase() as Role;
+    return rolePermissions[normalizedRole] || [];
 }
 
 /**
  * Check if a role is valid
  */
 export function isValidRole(role: string | undefined | null): role is Role {
-    return role === "ADMIN" || role === "MANAGER" || role === "USER";
+    if (!role) return false;
+    const normalizedRole = role.toUpperCase();
+    return normalizedRole === "ADMIN" || normalizedRole === "MANAGER" || normalizedRole === "USER";
 }
 
 /**
  * Get the display name for a role
  */
-export function getRoleDisplayName(role: Role): string {
+export function getRoleDisplayName(role: Role | string): string {
+    const normalizedRole = (role as string).toUpperCase() as Role;
     const displayNames: Record<Role, string> = {
         ADMIN: "Administrator",
         MANAGER: "Manager",
         USER: "User",
     };
-    return displayNames[role] || role;
+    return displayNames[normalizedRole] || role;
 }
 
 /**

@@ -25,6 +25,10 @@ import {
   RiNodeTree,
   RiBuilding2Line,
   RiFlowChart,
+  RiCalculatorLine,
+  RiAlertLine,
+  RiKeyLine,
+  RiGlobalLine,
 } from "react-icons/ri";
 import { cn } from "@/lib/utils";
 import {
@@ -61,6 +65,11 @@ const mainNavItems: NavItem[] = [
     href: "/analytics",
     icon: RiLineChartLine,
     minRole: "MANAGER",
+  },
+  {
+    title: "Notifications",
+    href: "/notifications",
+    icon: RiNotification3Line,
   },
 ];
 
@@ -101,6 +110,18 @@ const lendingNavItems: NavItem[] = [
 
 const riskNavItems: NavItem[] = [
   {
+    title: "Risk Dashboard",
+    href: "/risk-dashboard",
+    icon: RiAlertLine,
+    minRole: "MANAGER",
+  },
+  {
+    title: "Approvals",
+    href: "/approvals",
+    icon: RiCheckboxCircleLine,
+    minRole: "MANAGER",
+  },
+  {
     title: "Legal Cases",
     href: "/legal",
     icon: RiHammerLine,
@@ -121,6 +142,12 @@ const riskNavItems: NavItem[] = [
 ];
 
 const configNavItems: NavItem[] = [
+  {
+    title: "API Keys",
+    href: "/configuration/api-keys",
+    icon: RiKeyLine,
+    minRole: "ADMIN",
+  },
   {
     title: "Partners",
     href: "/configuration/partners",
@@ -144,6 +171,19 @@ const configNavItems: NavItem[] = [
     href: "/configuration/users",
     icon: RiAdminLine,
     minRole: "ADMIN",
+  },
+];
+
+const toolsNavItems: NavItem[] = [
+  {
+    title: "EMI Calculator",
+    href: "/tools/emi-calculator",
+    icon: RiCalculatorLine,
+  },
+  {
+    title: "Foreclosure Calculator",
+    href: "/tools/foreclosure-calculator",
+    icon: RiAlertLine,
   },
 ];
 
@@ -192,11 +232,12 @@ export function AppSidebar({ userRole, userEmail }: AppSidebarProps) {
 
         <NavGroup label="Overview" items={filterItems(mainNavItems)} pathname={pathname} />
         <NavGroup label="Lending Operations" items={filterItems(lendingNavItems)} pathname={pathname} />
+        <NavGroup label="Tools" items={filterItems(toolsNavItems)} pathname={pathname} />
         <NavGroup label="Risk & Compliance" items={filterItems(riskNavItems)} pathname={pathname} />
         <NavGroup label="Configuration" items={filterItems(configNavItems)} pathname={pathname} />
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-sidebar-border p-3 bg-muted/50">
+      <SidebarFooter className="border-sidebar-border p-3">
         <div className="flex items-center justify-between px-2 mb-2">
           <span className="text-xs font-semibold text-sidebar-foreground/70 uppercase tracking-wider">Theme</span>
           <ThemeToggle />

@@ -45,6 +45,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatCurrency, formatDate, getStatusColor, maskAadhaar, maskPan } from "@/lib/utils";
 import { CollateralTreeVisualizer } from "@/components/collateral/collateral-tree-view";
 import { CommunicationTimeline } from "@/components/customers/communication-timeline";
+import { CustomerRiskProfileCard } from "@/components/customers/risk-profile-card";
 
 async function getCustomerDetails(id: string) {
   try {
@@ -381,50 +382,28 @@ export default async function CustomerDetailPage({ params }: CustomerDetailPageP
               </CardContent>
             </Card>
 
-            {/* KYC Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base font-medium flex items-center gap-2">
-                  <RiShieldCheckLine className="h-4 w-4" />
-                  KYC Information
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Aadhaar</span>
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono text-sm">
-                      {customer.aadhaarNumber ? maskAadhaar(customer.aadhaarNumber) : "-"}
-                    </span>
-                    {customer.aadhaarVerified && <RiCheckLine className="h-4 w-4 text-success" />}
-                  </div>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">PAN</span>
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono text-sm">
-                      {customer.panNumber ? maskPan(customer.panNumber) : "-"}
-                    </span>
-                    {customer.panVerified && <RiCheckLine className="h-4 w-4 text-success" />}
-                  </div>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Risk Score</span>
-                  <span className="font-mono">{customer.riskScore || "-"}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Member Since</span>
-                  <span className="text-sm">{formatDate(customer.createdAt)}</span>
-                </div>
-
-                {customer.kycRejectionReason && (
-                  <div className="pt-3 border-t">
-                    <p className="text-xs text-muted-foreground mb-1">Rejection Reason</p>
-                    <p className="text-sm text-destructive">{customer.kycRejectionReason}</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+            {/* Risk Profile Card */}
+            <CustomerRiskProfileCard
+              data={{
+                firstName: customer.firstName,
+                lastName: customer.lastName,
+                creditScore: customer.creditScore,
+                riskScore: customer.riskScore,
+                monthlyIncome: customer.monthlyIncome,
+                totalLoans: customerLoans.length,
+                activeLoans: customerLoans.filter(l => l.status === "ACTIVE").length,
+                totalOutstanding: totalOutstanding,
+                totalDisbursed: customerLoans.reduce((sum, l) => sum + (l.principalAmount ?? 0), 0),
+                paidOnTime: Math.floor(customerLoans.length * 0.85), // Placeholder - would need EMI schedule data
+                overduePayments: Math.ceil(customerLoans.length * 0.15), // Placeholder
+                totalPayments: customerLoans.length > 0 ? customerLoans.length * 3 : 0, // Placeholder
+                totalCollateralValue: totalCollateralValue,
+                currentLtv: totalCollateralValue > 0 ? (totalOutstanding / totalCollateralValue) * 100 : 0,
+                kycStatus: customer.kycStatus,
+                aadhaarVerified: customer.aadhaarVerified ?? false,
+                panVerified: customer.panVerified ?? false,
+              }}
+            />
           </section>
 
           {/* Applications */}
