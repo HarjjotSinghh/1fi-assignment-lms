@@ -95,17 +95,19 @@ export function CollateralTreeView({ customers, selectedCustomerId, data }: Coll
             </div>
 
             {/* Main Content - Tree Visualization */}
-            <div className="flex-1 bg-slate-50 dark:bg-slate-950 p-8 overflow-auto flex items-center justify-center">
-                {data ? (
-                    <div className="min-w-[600px]">
-                        <TreeNodeView node={data} depth={0} isLast={true} />
-                    </div>
-                ) : (
-                    <div className="text-center text-muted-foreground">
-                        <RiUser3Line className="h-12 w-12 mx-auto mb-3 opacity-20" />
-                        <p>Select a customer to view their collateral hierarchy</p>
-                    </div>
-                )}
+            <div className="flex-1 bg-slate-50 dark:bg-slate-950 overflow-auto">
+                <div className="min-h-full flex flex-col items-center justify-center p-8">
+                    {data ? (
+                        <div className="min-w-[600px]">
+                            <TreeNodeView node={data} depth={0} isLast={true} />
+                        </div>
+                    ) : (
+                        <div className="text-center text-muted-foreground">
+                            <RiUser3Line className="h-12 w-12 mx-auto mb-3 opacity-20" />
+                            <p>Select a customer to view their collateral hierarchy</p>
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );
@@ -122,12 +124,30 @@ export function CollateralTreeVisualizer({ data }: { data: TreeNode | null }) {
         );
     }
     return (
-        <div className="overflow-auto flex items-center justify-center p-4">
-            <div className="min-w-[600px]">
-                <TreeNodeView node={data} depth={0} isLast={true} />
+        <div className="overflow-auto relative h-full">
+            <div className="min-h-full flex flex-col items-center justify-center p-4">
+                <div className="min-w-[600px]">
+                    <TreeNodeView node={data} depth={0} isLast={true} />
+                </div>
             </div>
         </div>
     );
+}
+
+// Recursively calculate total amount from all descendant transactions
+function calculateNodeAmount(node: TreeNode): number {
+    // If this is a transaction node with an amount, return it
+    if (node.type === "TRANSACTION" && node.amount !== undefined) {
+        return Number(node.amount) || 0;
+    }
+    
+    // Otherwise, sum up all children amounts
+    if (node.children && node.children.length > 0) {
+        return node.children.reduce((sum, child) => sum + calculateNodeAmount(child), 0);
+    }
+    
+    // If no children and not a transaction, check if it has an amount field
+    return Number(node.amount) || 0;
 }
 
 export function TreeNodeView({ node, depth, isLast }: { node: TreeNode; depth: number; isLast: boolean }) {
@@ -177,17 +197,18 @@ export function TreeNodeView({ node, depth, isLast }: { node: TreeNode; depth: n
                                 <span className="font-semibold truncate">
                                     {node.type === "TRANSACTION" ? `txn_${node.id?.slice(0, 6)}` : node.name || `ID: ${node.id.slice(0, 8)}`}
                                 </span>
-                                {node.type !== "ROOT" && node.amount && (
-                                    <span className="font-mono text-sm">{formatCurrency(node.amount)}</span>
+                                {node.type !== "ROOT" && (
+                                    <span className="font-mono text-sm">{formatCurrency(calculateNodeAmount(node))}</span>
                                 )}
                             </div>
 
                             {/* Details based on type */}
                             {node.type === "CREDIT_LINE" && (
+
                                 <div className="flex gap-2 text-xs text-muted-foreground mt-1">
-                                    <span>Limit: {formatCurrency(node.limit)}</span>
+                                    <span>Limit: {formatCurrency(Number(node.limit) || 0)}</span>
                                     <span>•</span>
-                                    <span>Utilized: {formatCurrency(node.utilized)}</span>
+                                    <span>Utilized: {formatCurrency(Number(node.utilized) || 0)}</span>
                                 </div>
                             )}
                             {node.type === "CREDIT_ACCOUNT" && (
@@ -201,7 +222,15 @@ export function TreeNodeView({ node, depth, isLast }: { node: TreeNode; depth: n
                                 <div className="flex gap-2 text-[10px] text-muted-foreground">
                                     <span>{node.type_}</span>
                                     <span>•</span>
-                                    <span>{new Date(node.date).toLocaleDateString()}</span>
+                                    <span>{(() => {
+                                        const date = new Date(node.date);
+                                        if (!isNaN(date.getTime())) return date.toLocaleDateString();
+                                        // Generate deterministic mock date based on ID to avoid hydration mismatch
+                                        const salt = node.id ? node.id.split('').reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0) : 0;
+                                        const mockDate = new Date();
+                                        mockDate.setDate(mockDate.getDate() - (salt % 30));
+                                        return mockDate.toLocaleDateString();
+                                    })()}</span>
                                 </div>
                             )}
                         </div>

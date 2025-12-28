@@ -14,6 +14,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { ApiKeyActions } from "./api-key-actions";
+import { RateLimitChart } from "./rate-limit-chart";
 
 // Get all API keys for the admin view
 async function getApiKeys() {
@@ -105,7 +106,7 @@ export default async function ApiKeysPage() {
       </section>
 
       {/* Stats Overview */}
-      <section className="grid gap-4 md:grid-cols-3">
+      <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
@@ -145,6 +146,11 @@ export default async function ApiKeysPage() {
             </div>
           </CardContent>
         </Card>
+      </section>
+
+      {/* Rate Limit Chart */}
+      <section>
+        <RateLimitChart />
       </section>
 
       {/* API Keys List */}

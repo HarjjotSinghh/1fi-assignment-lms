@@ -149,6 +149,12 @@ const configNavItems: NavItem[] = [
     minRole: "ADMIN",
   },
   {
+    title: "Webhook Events",
+    href: "/configuration/webhooks/events",
+    icon: RiGlobalLine,
+    minRole: "ADMIN",
+  },
+  {
     title: "Partners",
     href: "/configuration/partners",
     icon: RiBuilding2Line,
@@ -165,6 +171,11 @@ const configNavItems: NavItem[] = [
     href: "/configuration/rules",
     icon: RiFlowChart,
     minRole: "ADMIN",
+  },
+  {
+    title: "API Docs",
+    href: "/api/docs",
+    icon: RiBookOpenLine,
   },
   {
     title: "System Users",
@@ -198,7 +209,8 @@ export function AppSidebar({ userRole, userEmail }: AppSidebarProps) {
   // Helper to filter nav items
   const filterItems = (items: NavItem[]) =>
     items.filter((item) => !item.minRole || hasMinimumRole(userRole, item.minRole));
-
+  console.log('items:', filterItems, mainNavItems, riskNavItems, lendingNavItems, configNavItems, toolsNavItems)
+  console.log('filtered items:', filterItems)
   return (
     <Sidebar className="border-r border-sidebar-border bg-sidebar text-sidebar-foreground">
       <SidebarHeader className="border-b border-sidebar-border p-4">
