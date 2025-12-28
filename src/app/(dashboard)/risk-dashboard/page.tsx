@@ -21,6 +21,8 @@ import { formatCurrency } from "@/lib/utils";
 import { auth } from "@/lib/auth";
 import { ServerRoleGate } from "@/components/auth/role-gate";
 
+import { SimulationControls } from "@/components/dashboard/simulation-controls";
+
 // Get portfolio risk metrics
 async function getPortfolioRiskMetrics() {
   try {
@@ -322,6 +324,7 @@ export default async function RiskDashboardPage() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          <SimulationControls />
           <Link href="/collateral">
             <Button variant="outline" className="rounded-none gap-2">
               <RiShieldLine className="h-4 w-4" />
