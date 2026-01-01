@@ -1,5 +1,5 @@
 import { db } from "@/db";
-import { loans, collaterals, loanProducts, marginCalls, auditLogs, notifications } from "@/db/schema";
+import { loans, collaterals, loanProducts, marginCalls, auditLogs, notifications, customers, users } from "@/db/schema";
 import { eq, and, sum } from "drizzle-orm";
 import { NextResponse } from "next/server";
 
@@ -16,9 +16,13 @@ export async function POST() {
                 productId: loans.productId,
                 marginCallThreshold: loanProducts.marginCallThreshold,
                 liquidationThreshold: loanProducts.liquidationThreshold,
+                linkedUserId: users.id,
+                customerCreatedBy: customers.createdById,
             })
             .from(loans)
             .leftJoin(loanProducts, eq(loans.productId, loanProducts.id))
+            .innerJoin(customers, eq(loans.customerId, customers.id))
+            .leftJoin(users, eq(customers.email, users.email))
             .where(eq(loans.status, "ACTIVE"));
 
         let loansChecked = 0;
@@ -84,15 +88,20 @@ export async function POST() {
                     }).returning();
 
                     // Create Notification
-                    await db.insert(notifications).values({
-                        userId: loan.customerId, // Assuming customer links to user ID for demo, usually stricter separation
-                        type: "ALERT",
-                        title: "Margin Call Alert",
-                        message: `Loan ${loan.loanNumber} LTV has breached ${loan.marginCallThreshold}%. Please add collateral.`,
-                        entityType: "LOAN",
-                        entityId: loan.id,
-                        link: `/loans/${loan.id}`,
-                    });
+                    // Create Notification
+                    const targetUserId = loan.linkedUserId || loan.customerCreatedBy;
+                    
+                    if (targetUserId) {
+                        await db.insert(notifications).values({
+                            userId: targetUserId,
+                            type: "ALERT",
+                            title: "Margin Call Alert",
+                            message: `Loan ${loan.loanNumber} LTV has breached ${loan.marginCallThreshold}%. Please add collateral.`,
+                            entityType: "LOAN",
+                            entityId: loan.id,
+                            link: `/loans/${loan.id}`,
+                        });
+                    }
 
                     marginCallsGenerated++;
                 }
