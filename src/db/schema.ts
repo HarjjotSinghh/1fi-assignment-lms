@@ -20,6 +20,15 @@ export const users = sqliteTable("users", {
     role: text("role").notNull().default("USER"), // ADMIN, USER, MANAGER
     onboardingCompleted: integer("onboarding_completed", { mode: "boolean" }).default(false),
     onboardingCompletedAt: text("onboarding_completed_at"),
+    
+    // MFA (Multi-Factor Authentication)
+    mfaEnabled: integer("mfa_enabled", { mode: "boolean" }).default(false),
+    mfaSecret: text("mfa_secret"), // TOTP secret key (encrypted)
+    mfaBackupCodes: text("mfa_backup_codes"), // JSON array of hashed backup codes
+    
+    // Department assignment
+    departmentId: text("department_id"),
+    
     createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
     updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
 });
@@ -712,6 +721,38 @@ export const systemSettings = sqliteTable("system_settings", {
     // Metadata
     description: text("description"),
     category: text("category").notNull().default("GENERAL"), // GENERAL, INTEGRATION, RISK, NOTIFICATION
+
+    // Timestamps
+    updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+    updatedById: text("updated_by_id").references(() => users.id),
+});
+
+// ============================================
+// BRANDING SETTINGS (White-Labeling)
+// ============================================
+
+export const brandingSettings = sqliteTable("branding_settings", {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+
+    // Logo URLs
+    logoUrl: text("logo_url"),
+    logoDarkUrl: text("logo_dark_url"),
+    faviconUrl: text("favicon_url"),
+
+    // Colors
+    primaryColor: text("primary_color").default("#4F46E5"),
+    secondaryColor: text("secondary_color"),
+    accentColor: text("accent_color"),
+
+    // Company Info
+    companyName: text("company_name").default("1Fi LMS"),
+    supportEmail: text("support_email"),
+    supportPhone: text("support_phone"),
+    websiteUrl: text("website_url"),
+
+    // Footer
+    footerText: text("footer_text"),
+    copyrightText: text("copyright_text"),
 
     // Timestamps
     updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
