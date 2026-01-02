@@ -62,6 +62,92 @@ export const verificationTokens = sqliteTable("verification_tokens", {
 });
 
 // ============================================
+// DEPARTMENTS (Organizational Hierarchy)
+// ============================================
+
+export const departments = sqliteTable("departments", {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+    name: text("name").notNull(),
+    code: text("code").notNull().unique(),
+    description: text("description"),
+    parentId: text("parent_id"), // Self-reference for hierarchy
+    managerId: text("manager_id").references(() => users.id),
+    isActive: integer("is_active", { mode: "boolean" }).default(true),
+    createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+    updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+});
+
+// ============================================
+// WORKFLOW CONFIGURATION
+// ============================================
+
+export const workflowDefinitions = sqliteTable("workflow_definitions", {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+    name: text("name").notNull(),
+    description: text("description"),
+    type: text("type").notNull(), // LOAN_APPROVAL, DISBURSEMENT, COLLATERAL_RELEASE, FORECLOSURE
+    stages: text("stages").notNull(), // JSON array of stage definitions
+    isActive: integer("is_active", { mode: "boolean" }).default(true),
+    productId: text("product_id"), // null = all products
+    createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+    updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+    createdById: text("created_by_id").references(() => users.id),
+});
+
+export const workflowInstances = sqliteTable("workflow_instances", {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+    definitionId: text("definition_id").references(() => workflowDefinitions.id),
+    entityType: text("entity_type").notNull(), // APPLICATION, LOAN, DISBURSEMENT
+    entityId: text("entity_id").notNull(),
+    currentStage: integer("current_stage").default(0),
+    status: text("status").notNull().default("IN_PROGRESS"), // IN_PROGRESS, COMPLETED, REJECTED, CANCELLED
+    currentAssigneeId: text("current_assignee_id").references(() => users.id),
+    completedAt: text("completed_at"),
+    createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+    updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+});
+
+export const workflowHistory = sqliteTable("workflow_history", {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+    instanceId: text("instance_id").references(() => workflowInstances.id),
+    stage: integer("stage").notNull(),
+    stageName: text("stage_name").notNull(),
+    action: text("action").notNull(), // APPROVED, REJECTED, RETURNED, ESCALATED
+    comment: text("comment"),
+    actionById: text("action_by_id").references(() => users.id),
+    actionAt: text("action_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+});
+
+// ============================================
+// LOGIN ACTIVITY MONITORING
+// ============================================
+
+export const loginHistory = sqliteTable("login_history", {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+    userId: text("user_id").references(() => users.id),
+    success: integer("success", { mode: "boolean" }).notNull(),
+    ipAddress: text("ip_address"),
+    userAgent: text("user_agent"),
+    location: text("location"), // City, Country from IP geolocation
+    failureReason: text("failure_reason"),
+    mfaUsed: integer("mfa_used", { mode: "boolean" }).default(false),
+    sessionId: text("session_id"),
+    createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+});
+
+export const activeSessions = sqliteTable("active_sessions", {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+    userId: text("user_id").references(() => users.id),
+    sessionToken: text("session_token").notNull(),
+    ipAddress: text("ip_address"),
+    userAgent: text("user_agent"),
+    location: text("location"),
+    lastActivityAt: text("last_activity_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+    expiresAt: text("expires_at").notNull(),
+    createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+});
+
+// ============================================
 // CUSTOMER MANAGEMENT
 // ============================================
 
