@@ -251,14 +251,14 @@ export default function DepartmentsPage() {
                             <div className="space-y-2">
                                 <Label htmlFor="parentId">Parent Department</Label>
                                 <Select
-                                    value={form.parentId}
-                                    onValueChange={(value) => setForm({ ...form, parentId: value })}
+                                    value={form.parentId || "root"}
+                                    onValueChange={(value) => setForm({ ...form, parentId: value === "root" ? "" : value })}
                                 >
                                     <SelectTrigger>
                                         <SelectValue placeholder="Select parent (optional)" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="">None (Top Level)</SelectItem>
+                                        <SelectItem value="root">None (Top Level)</SelectItem>
                                         {departments
                                             .filter((d) => d.id !== editingId)
                                             .map((dept) => (

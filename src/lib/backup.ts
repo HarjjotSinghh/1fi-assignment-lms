@@ -8,7 +8,10 @@ import { join, basename } from "path";
 
 const BACKUP_DIR = process.env.BACKUP_DIR || "./backups";
 const MAX_BACKUPS = parseInt(process.env.MAX_BACKUPS || "10", 10);
-const DB_PATH = process.env.DATABASE_URL?.replace("file:", "") || "./sqlite.db";
+const connectionUrl = process.env.TURSO_CONNECTION_URL || process.env.DATABASE_URL;
+const DB_PATH = connectionUrl?.startsWith("file:") 
+    ? connectionUrl.replace("file:", "") 
+    : (connectionUrl && !connectionUrl.includes("://") ? connectionUrl : "./sqlite.db");
 
 // Ensure backup directory exists
 if (!existsSync(BACKUP_DIR)) {

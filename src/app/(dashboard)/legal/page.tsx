@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { RiHammerLine, RiSearchLine, RiFilter3Line } from "react-icons/ri";
+import { AddCaseDialog } from "@/components/legal/add-case-dialog";
 
 export default async function LegalCasesPage() {
     const cases = await db
@@ -33,6 +34,13 @@ export default async function LegalCasesPage() {
         .leftJoin(users, eq(legalCases.assignedToId, users.id))
         .orderBy(desc(legalCases.createdAt));
 
+    const allLoans = await db.query.loans.findMany({
+        columns: {
+            id: true,
+            loanNumber: true
+        }
+    });
+
     return (
         <div className="space-y-6 animate-fade-in text-foreground">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -50,10 +58,7 @@ export default async function LegalCasesPage() {
                         <RiFilter3Line className="h-4 w-4" />
                         Filter Status
                     </Button>
-                    <Button className="gap-2">
-                        <RiHammerLine className="h-4 w-4" />
-                        New Case Notling
-                    </Button>
+                    <AddCaseDialog loans={allLoans} />
                 </div>
             </div>
 

@@ -44,7 +44,7 @@
     --chart-5: 195 85% 45%;
 
     /* Zero border radius for sharp corners */
-    --radius: 0px;
+    --radius: 4px;
 
     /* Sidebar */
     --sidebar-background: 222 28% 9%;
@@ -137,7 +137,7 @@
 
   /* Sharp corners utility */
   .sharp {
-    border-radius: 0 !important;
+    border-radius: 4px !important;
   }
 
   /* Glass morphism for futuristic look (without shadow) */

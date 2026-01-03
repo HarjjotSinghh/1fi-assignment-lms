@@ -73,7 +73,7 @@ const mainNavItems: NavItem[] = [
     title: "Notifications",
     href: "/notifications",
     icon: RiNotification3Line,
-  },
+  }
 ];
 
 const lendingNavItems: NavItem[] = [
@@ -161,6 +161,12 @@ const configNavItems: NavItem[] = [
     title: "API Keys",
     href: "/configuration/api-keys",
     icon: RiKeyLine,
+    minRole: "ADMIN",
+  },
+  {
+    title: "Webhooks",
+    href: "/configuration/webhooks",
+    icon: RiGlobalLine,
     minRole: "ADMIN",
   },
   {
@@ -286,6 +292,11 @@ const toolsNavItems: NavItem[] = [
     icon: RiLineChartLine,
     minRole: "MANAGER",
   },
+  {
+    title: "Playbook",
+    href: "/playbook",
+    icon: RiBookOpenLine,
+  },
 ];
 
 interface AppSidebarProps {
@@ -299,12 +310,11 @@ export function AppSidebar({ userRole, userEmail }: AppSidebarProps) {
   // Helper to filter nav items
   const filterItems = (items: NavItem[]) =>
     items.filter((item) => !item.minRole || hasMinimumRole(userRole, item.minRole));
-  console.log('items:', filterItems, mainNavItems, riskNavItems, lendingNavItems, configNavItems, toolsNavItems)
-  console.log('filtered items:', filterItems)
+
   return (
     <Sidebar className="border-r border-sidebar-border bg-sidebar text-sidebar-foreground">
       <SidebarHeader className="border-b border-sidebar-border p-4">
-        <Link href="/" className="flex items-center gap-3 group">
+        <Link href="/dashboard" className="flex items-center gap-3 group">
           <div className="w-10 h-10 bg-primary flex items-center justify-center rounded-sm">
             <RiWallet3Line className="w-5 h-5 text-primary-foreground" />
           </div>
@@ -346,7 +356,7 @@ export function AppSidebar({ userRole, userEmail }: AppSidebarProps) {
           <ThemeToggle />
         </div>
         <SidebarMenu>
-          <SidebarMenuItem>
+          {/* <SidebarMenuItem>
             <SidebarMenuButton asChild className="px-3 py-2.5">
               <Link
                 href="/settings"
@@ -356,7 +366,7 @@ export function AppSidebar({ userRole, userEmail }: AppSidebarProps) {
                 <span className="font-medium">Global Settings</span>
               </Link>
             </SidebarMenuButton>
-          </SidebarMenuItem>
+          </SidebarMenuItem> */}
         </SidebarMenu>
 
         <div className="mt-3 px-3 flex items-center justify-between text-xs text-sidebar-foreground/40 font-mono">

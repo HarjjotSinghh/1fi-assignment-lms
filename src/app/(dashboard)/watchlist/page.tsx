@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { RiEyeLine, RiSearchLine, RiUserForbidLine } from "react-icons/ri";
+import { AddWatchlistDialog } from "@/components/watchlist/add-watchlist-dialog";
 
 export default async function WatchlistPage() {
     const entries = await db
@@ -42,10 +43,7 @@ export default async function WatchlistPage() {
                         Manage blacklisted entities and high-risk monitoring signals.
                     </p>
                 </div>
-                <Button className="gap-2 bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                    <RiUserForbidLine className="h-4 w-4" />
-                    Add to Watchlist
-                </Button>
+                <AddWatchlistDialog />
             </div>
 
             <div className="grid gap-4 md:grid-cols-3">
