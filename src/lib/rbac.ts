@@ -41,7 +41,10 @@ export type Permission =
     | "dashboard:view"
     | "dashboard:full_stats"
     // Onboarding permissions
-    | "onboarding:access";
+    | "onboarding:access"
+    // System permissions (Phase 4)
+    | "system:manage"
+    | "compliance:manage";
 
 // Base permissions for USER role
 const userPermissions: Permission[] = [
@@ -80,6 +83,8 @@ const allPermissions: Permission[] = [
     "customers:kyc_override",
     "products:delete",
     "collateral:liquidate",
+    "system:manage",
+    "compliance:manage",
 ];
 
 // Role-permission mapping

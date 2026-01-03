@@ -24,7 +24,8 @@ export type AuditEntityType =
     | "PRODUCT"
     | "USER"
     | "PAYMENT"
-    | "DOCUMENT";
+    | "DOCUMENT"
+    | "TRANSACTION";
 
 interface LogAuditParams {
     action: AuditAction;

@@ -27,8 +27,11 @@ import {
   RiFlowChart,
   RiCalculatorLine,
   RiAlertLine,
-  RiKeyLine,
   RiGlobalLine,
+  RiMessage2Line,
+  RiFileChartLine,
+  RiKeyLine,
+  RiExchangeLine,
 } from "react-icons/ri";
 import { cn } from "@/lib/utils";
 import {
@@ -101,6 +104,12 @@ const lendingNavItems: NavItem[] = [
     minRole: "MANAGER",
   },
   {
+    title: "Rebalancing",
+    href: "/collateral/rebalancing",
+    icon: RiExchangeLine,
+    minRole: "MANAGER",
+  },
+  {
     title: "Collections",
     href: "/collections",
     icon: RiBankLine,
@@ -139,6 +148,12 @@ const riskNavItems: NavItem[] = [
     icon: RiHistoryLine,
     minRole: "ADMIN",
   },
+  {
+    title: "Login History",
+    href: "/activity/login-history",
+    icon: RiShieldLine,
+    minRole: "ADMIN",
+  },
 ];
 
 const configNavItems: NavItem[] = [
@@ -173,6 +188,42 @@ const configNavItems: NavItem[] = [
     minRole: "ADMIN",
   },
   {
+    title: "Departments",
+    href: "/configuration/departments",
+    icon: RiBuilding2Line,
+    minRole: "ADMIN",
+  },
+  {
+    title: "Workflows",
+    href: "/configuration/workflows",
+    icon: RiFlowChart,
+    minRole: "ADMIN",
+  },
+  {
+    title: "Interest Rates",
+    href: "/configuration/interest-rates",
+    icon: RiLineChartLine,
+    minRole: "ADMIN",
+  },
+  {
+    title: "Branding",
+    href: "/configuration/branding",
+    icon: RiSettings3Line,
+    minRole: "ADMIN",
+  },
+  {
+    title: "Database Backup",
+    href: "/configuration/backup",
+    icon: RiStackLine,
+    minRole: "ADMIN",
+  },
+  {
+    title: "System Health",
+    href: "/configuration/system-health",
+    icon: RiAlertLine,
+    minRole: "ADMIN",
+  },
+  {
     title: "API Docs",
     href: "/docs",
     icon: RiBookOpenLine,
@@ -182,6 +233,33 @@ const configNavItems: NavItem[] = [
     href: "/configuration/users",
     icon: RiAdminLine,
     minRole: "ADMIN",
+  },
+  {
+    title: "Comm. Templates",
+    href: "/configuration/templates",
+    icon: RiMessage2Line,
+    minRole: "ADMIN",
+  },
+  {
+    title: "Custom Fields",
+    href: "/configuration/custom-fields",
+    icon: RiSettings3Line,
+    minRole: "ADMIN",
+  },
+];
+
+const reportsNavItems: NavItem[] = [
+  {
+    title: "Regulatory (RBI)",
+    href: "/reports/regulatory",
+    icon: RiFileChartLine,
+    minRole: "MANAGER",
+  },
+  {
+    title: "Report Builder",
+    href: "/reports/builder",
+    icon: RiFileChartLine,
+    minRole: "MANAGER",
   },
 ];
 
@@ -195,6 +273,18 @@ const toolsNavItems: NavItem[] = [
     title: "Foreclosure Calculator",
     href: "/tools/foreclosure-calculator",
     icon: RiAlertLine,
+  },
+  {
+    title: "Payment Reconciliation",
+    href: "/payments/reconciliation",
+    icon: RiBankLine,
+    minRole: "MANAGER",
+  },
+  {
+    title: "Cash Flow Forecast",
+    href: "/analytics/cash-flow",
+    icon: RiLineChartLine,
+    minRole: "MANAGER",
   },
 ];
 
@@ -243,6 +333,7 @@ export function AppSidebar({ userRole, userEmail }: AppSidebarProps) {
         </div>
 
         <NavGroup label="Overview" items={filterItems(mainNavItems)} pathname={pathname} />
+        <NavGroup label="Reports" items={filterItems(reportsNavItems)} pathname={pathname} />
         <NavGroup label="Lending Operations" items={filterItems(lendingNavItems)} pathname={pathname} />
         <NavGroup label="Tools" items={filterItems(toolsNavItems)} pathname={pathname} />
         <NavGroup label="Risk & Compliance" items={filterItems(riskNavItems)} pathname={pathname} />

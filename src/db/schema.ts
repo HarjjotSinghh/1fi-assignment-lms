@@ -1,4 +1,4 @@
-import { sql } from "drizzle-orm";
+import { sql, relations } from "drizzle-orm";
 import {
     integer,
     sqliteTable,
@@ -249,9 +249,67 @@ export const loanProducts = sqliteTable("loan_products", {
     // Status
     isActive: integer("is_active", { mode: "boolean" }).default(true),
 
+    // Floating Rate Configuration
+    rateType: text("rate_type").default("FIXED"), // FIXED, FLOATING
+    benchmarkId: text("benchmark_id"), // Reference to interest rate benchmark
+    spreadPercent: real("spread_percent").default(0), // Spread over benchmark rate
+
     // Timestamps
     createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
     updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+});
+
+// ============================================
+// INTEREST RATE BENCHMARKS (for Floating Rates)
+// ============================================
+
+export const interestRateBenchmarks = sqliteTable("interest_rate_benchmarks", {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+    name: text("name").notNull(), // RBI_REPO, MCLR, EBLR, PLR
+    description: text("description"),
+    currentRate: real("current_rate").notNull(),
+    previousRate: real("previous_rate"),
+    effectiveFrom: text("effective_from").notNull(),
+    source: text("source"), // RBI, Bank, Internal
+    isActive: integer("is_active", { mode: "boolean" }).default(true),
+    createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+    updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+    updatedById: text("updated_by_id").references(() => users.id),
+});
+
+export const interestRateHistory = sqliteTable("interest_rate_history", {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+    benchmarkId: text("benchmark_id").references(() => interestRateBenchmarks.id),
+    rate: real("rate").notNull(),
+    effectiveFrom: text("effective_from").notNull(),
+    effectiveTo: text("effective_to"),
+    source: text("source"),
+    createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+    createdById: text("created_by_id").references(() => users.id),
+});
+
+// ============================================
+// FORECLOSURE REQUESTS
+// ============================================
+
+export const foreclosureRequests = sqliteTable("foreclosure_requests", {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+    loanId: text("loan_id"), // Will reference loans table
+    requestDate: text("request_date").notNull(),
+    outstandingPrincipal: real("outstanding_principal").notNull(),
+    outstandingInterest: real("outstanding_interest").notNull(),
+    penaltyAmount: real("penalty_amount").default(0),
+    waiverAmount: real("waiver_amount").default(0),
+    totalPayable: real("total_payable").notNull(),
+    status: text("status").default("PENDING"), // PENDING, APPROVED, PAID, REJECTED, CANCELLED
+    approvedById: text("approved_by_id").references(() => users.id),
+    approvedAt: text("approved_at"),
+    paidAt: text("paid_at"),
+    nocGeneratedAt: text("noc_generated_at"),
+    nocDocumentId: text("noc_document_id"),
+    createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+    updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+    createdById: text("created_by_id").references(() => users.id),
 });
 
 // ============================================
@@ -368,6 +426,12 @@ export const payments = sqliteTable("payments", {
     // Status
     status: text("status").notNull().default("SUCCESS"), // SUCCESS, FAILED, PENDING
 
+    // Reconciliation
+    isReconciled: integer("is_reconciled", { mode: "boolean" }).default(false),
+    reconciledAt: text("reconciled_at"),
+    reconciledById: text("reconciled_by_id").references(() => users.id),
+    reconciliationNotes: text("reconciliation_notes"),
+
     // Timestamps
     createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
 
@@ -382,6 +446,9 @@ export const payments = sqliteTable("payments", {
 export const collaterals = sqliteTable("collaterals", {
     id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
 
+    // Asset Type (Phase 5 - Multi-Collateral Support)
+    assetType: text("asset_type").notNull().default("MUTUAL_FUND"), // MUTUAL_FUND, BOND, INSURANCE, FD, SHARES, GOLD
+
     // Mutual Fund Details
     fundName: text("fund_name").notNull(),
     amcName: text("amc_name").notNull(), // Asset Management Company
@@ -389,6 +456,15 @@ export const collaterals = sqliteTable("collaterals", {
     schemeCode: text("scheme_code"),
     schemeName: text("scheme_name").notNull(),
     schemeType: text("scheme_type").notNull(), // EQUITY, DEBT, HYBRID, LIQUID
+
+    // Additional Asset Fields (Phase 5)
+    issuer: text("issuer"), // For bonds, FDs
+    maturityDate: text("maturity_date"), // For bonds, FDs, insurance
+    interestRate: real("interest_rate"), // For FDs, bonds
+    policyNumber: text("policy_number"), // For insurance
+    surrenderValue: real("surrender_value"), // For insurance
+    demat: text("demat_account"), // For shares, bonds
+    isin: text("isin"), // For shares, bonds
 
     // Units & Valuation
     units: real("units").notNull(),
@@ -418,6 +494,49 @@ export const collaterals = sqliteTable("collaterals", {
 });
 
 // ============================================
+// CO-APPLICANT & JOINT BORROWER (Phase 5)
+// ============================================
+
+export const applicationBorrowers = sqliteTable("application_borrowers", {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+    applicationId: text("application_id").notNull().references(() => loanApplications.id),
+    customerId: text("customer_id").notNull().references(() => customers.id),
+    role: text("role").notNull(), // PRIMARY, CO_APPLICANT, GUARANTOR
+    sharePercent: real("share_percent").default(100),
+    incomeConsidered: real("income_considered"), // Monthly income for joint assessment
+    createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+});
+
+// ============================================
+// CUSTOM FIELDS ENGINE (Phase 5)
+// ============================================
+
+export const customFieldDefinitions = sqliteTable("custom_field_definitions", {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+    entity: text("entity").notNull(), // CUSTOMER, LOAN, COLLATERAL, APPLICATION
+    fieldName: text("field_name").notNull(),
+    fieldLabel: text("field_label").notNull(),
+    fieldType: text("field_type").notNull(), // TEXT, NUMBER, DATE, SELECT, BOOLEAN, EMAIL, PHONE
+    options: text("options"), // JSON array for SELECT type
+    placeholder: text("placeholder"),
+    helpText: text("help_text"),
+    isRequired: integer("is_required", { mode: "boolean" }).default(false),
+    isActive: integer("is_active", { mode: "boolean" }).default(true),
+    displayOrder: integer("display_order").default(0),
+    validationRegex: text("validation_regex"),
+    createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+});
+
+export const customFieldValues = sqliteTable("custom_field_values", {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+    fieldId: text("field_id").notNull().references(() => customFieldDefinitions.id),
+    entityId: text("entity_id").notNull(),
+    value: text("value"),
+    createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+    updatedAt: text("updated_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+});
+
+// ============================================
 // DOCUMENTS
 // ============================================
 
@@ -427,6 +546,11 @@ export const documents = sqliteTable("documents", {
     type: text("type").notNull(), // AADHAAR, PAN, BANK_STATEMENT, SALARY_SLIP, ITR, OTHER
     url: text("url").notNull(),
     verified: integer("verified", { mode: "boolean" }).default(false),
+    
+    // Archival (Phase 4)
+    retentionYears: integer("retention_years").default(7),
+    archivedAt: text("archived_at"),
+    archiveLocation: text("archive_location"),
 
     // Timestamps
     createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
@@ -436,6 +560,42 @@ export const documents = sqliteTable("documents", {
     customerId: text("customer_id").references(() => customers.id),
     applicationId: text("application_id").references(() => loanApplications.id),
     loanId: text("loan_id").references(() => loans.id),
+});
+
+// ============================================
+// COMPLIANCE & COMMUNICATION (Phase 4)
+// ============================================
+
+export const customerConsents = sqliteTable("customer_consents", {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+    customerId: text("customer_id").references(() => customers.id),
+    consentType: text("consent_type").notNull(), // DATA_PROCESSING, MARKETING, CIBIL_CHECK
+    granted: integer("granted", { mode: "boolean" }).notNull(),
+    grantedAt: text("granted_at").default(sql`(CURRENT_TIMESTAMP)`),
+    revokedAt: text("revoked_at"),
+    ipAddress: text("ip_address"),
+    version: text("version").notNull(),
+});
+
+export const communicationTemplates = sqliteTable("communication_templates", {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+    name: text("name").notNull(),
+    channel: text("channel").notNull(), // EMAIL, SMS, WHATSAPP
+    subject: text("subject"), // Only for EMAIL
+    body: text("body").notNull(),
+    variables: text("variables"), // JSON array of supported variables
+    isActive: integer("is_active", { mode: "boolean" }).default(true),
+    createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+});
+
+export const reminderRules = sqliteTable("reminder_rules", {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+    name: text("name").notNull(),
+    triggerDays: integer("trigger_days").notNull(), // relative to due date: -3, -1, 0, 1, 7
+    channel: text("channel").notNull(),
+    templateId: text("template_id").references(() => communicationTemplates.id),
+    isActive: integer("is_active", { mode: "boolean" }).default(true),
+    createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
 });
 
 // ============================================
@@ -537,6 +697,30 @@ export const notifications = sqliteTable("notifications", {
 
     // Relations
     userId: text("user_id").references(() => users.id),
+});
+
+// Push Subscriptions for Web Push API
+export const pushSubscriptions = sqliteTable("push_subscriptions", {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+    
+    // Subscription data from browser
+    endpoint: text("endpoint").notNull(),
+    p256dh: text("p256dh").notNull(), // Public key
+    auth: text("auth").notNull(), // Auth secret
+    
+    // User agent info
+    userAgent: text("user_agent"),
+    deviceName: text("device_name"),
+    
+    // Status
+    isActive: integer("is_active", { mode: "boolean" }).default(true),
+    
+    // Timestamps
+    createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+    lastUsedAt: text("last_used_at"),
+    
+    // Relations
+    userId: text("user_id").references(() => users.id).notNull(),
 });
 
 // ============================================
@@ -1158,6 +1342,62 @@ export const navHistory = sqliteTable("nav_history", {
     collateralId: text("collateral_id").references(() => collaterals.id),
 });
 
+// ============================================
+// RELATIONS
+// ============================================
+
+export const customersRelations = relations(customers, ({ many }) => ({
+    loans: many(loans),
+    applications: many(loanApplications),
+}));
+
+export const loanProductsRelations = relations(loanProducts, ({ many }) => ({
+    loans: many(loans),
+    applications: many(loanApplications),
+}));
+
+export const loanApplicationsRelations = relations(loanApplications, ({ one }) => ({
+    customer: one(customers, {
+        fields: [loanApplications.customerId],
+        references: [customers.id],
+    }),
+    product: one(loanProducts, {
+        fields: [loanApplications.productId],
+        references: [loanProducts.id],
+    }),
+}));
+
+export const loansRelations = relations(loans, ({ one, many }) => ({
+    customer: one(customers, {
+        fields: [loans.customerId],
+        references: [customers.id],
+    }),
+    product: one(loanProducts, {
+        fields: [loans.productId],
+        references: [loanProducts.id],
+    }),
+    application: one(loanApplications, {
+        fields: [loans.applicationId],
+        references: [loanApplications.id],
+    }),
+    payments: many(payments),
+    emiSchedule: many(emiSchedule),
+}));
+
+export const paymentsRelations = relations(payments, ({ one }) => ({
+    loan: one(loans, {
+        fields: [payments.loanId],
+        references: [loans.id],
+    }),
+}));
+
+export const emiScheduleRelations = relations(emiSchedule, ({ one }) => ({
+    loan: one(loans, {
+        fields: [emiSchedule.loanId],
+        references: [loans.id],
+    }),
+}));
+
 // Type exports for insert/select operations
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
@@ -1227,3 +1467,22 @@ export type WebhookDelivery = typeof webhookDeliveries.$inferSelect;
 export type NewWebhookDelivery = typeof webhookDeliveries.$inferInsert;
 export type NavHistory = typeof navHistory.$inferSelect;
 export type NewNavHistory = typeof navHistory.$inferInsert;
+export type CustomerConsent = typeof customerConsents.$inferSelect;
+export type NewCustomerConsent = typeof customerConsents.$inferInsert;
+export type CommunicationTemplate = typeof communicationTemplates.$inferSelect;
+export type NewCommunicationTemplate = typeof communicationTemplates.$inferInsert;
+export type ReminderRule = typeof reminderRules.$inferSelect;
+export type NewReminderRule = typeof reminderRules.$inferInsert;
+
+// Phase 5 types
+export type ApplicationBorrower = typeof applicationBorrowers.$inferSelect;
+export type NewApplicationBorrower = typeof applicationBorrowers.$inferInsert;
+export type CustomFieldDefinition = typeof customFieldDefinitions.$inferSelect;
+export type NewCustomFieldDefinition = typeof customFieldDefinitions.$inferInsert;
+export type CustomFieldValue = typeof customFieldValues.$inferSelect;
+export type NewCustomFieldValue = typeof customFieldValues.$inferInsert;
+
+// Phase 7 types
+export type PushSubscriptionRecord = typeof pushSubscriptions.$inferSelect;
+export type NewPushSubscription = typeof pushSubscriptions.$inferInsert;
+
