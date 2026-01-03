@@ -78,12 +78,11 @@ const config: Config = {
 					ring: "hsl(var(--sidebar-ring))",
 				},
 			},
-			// Zero border radius for sharp corners
 			borderRadius: {
-				lg: "0px",
-				md: "0px",
-				sm: "0px",
-				DEFAULT: "0px",
+				lg: "var(--radius)",
+				md: "calc(var(--radius) - 2px)",
+				sm: "calc(var(--radius) - 4px)",
+				DEFAULT: "var(--radius)",
 			},
 			// Remove box shadow by default
 			boxShadow: {

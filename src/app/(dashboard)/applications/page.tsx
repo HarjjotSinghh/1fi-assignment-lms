@@ -167,7 +167,7 @@ export default async function ApplicationsPage(props: ApplicationsPageProps) {
 
   return (
     <div className="space-y-8 animate-fade-in">
-      <section className="relative overflow-hidden rounded-none border bg-gradient-to-br from-slate-50 via-white to-slate-100 p-6 md:p-8 dark:from-slate-950 dark:via-slate-900 dark:to-slate-900">
+      <section className="relative overflow-hidden rounded-none border bg-gradient-to-br from-primary/5 via-background to-accent/10 p-6 md:p-8 dark:from-primary/10 dark:via-background dark:to-accent/5">
         <div
           aria-hidden="true"
           className="pointer-events-none absolute -top-16 right-6 h-40 w-40 rounded-full bg-primary/15 blur-3xl"
