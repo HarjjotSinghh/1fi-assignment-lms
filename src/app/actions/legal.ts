@@ -1,3 +1,4 @@
+"use server";
 
 import { db } from "@/db";
 import { legalCases, loans } from "@/db/schema";

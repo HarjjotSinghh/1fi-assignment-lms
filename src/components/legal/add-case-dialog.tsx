@@ -45,7 +45,7 @@ export function AddCaseDialog({ loans }: { loans: { id: string; loanNumber: stri
     const [isPending, startTransition] = useTransition();
 
     const form = useForm<z.infer<typeof formSchema>>({
-        resolver: zodResolver(formSchema),
+        resolver: zodResolver(formSchema) as any,
         defaultValues: {
             caseNumber: "",
             courtName: "",

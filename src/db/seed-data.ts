@@ -67,8 +67,7 @@ export async function seedData() {
             subject: "Your loan has been approved",
             body: "Dear {{customerName}}, congratulations! Your loan {{loanNumber}} has been approved.",
             isActive: true,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
+            createdAt: new Date().toISOString()
         },
         {
             id: crypto.randomUUID(),
@@ -76,8 +75,7 @@ export async function seedData() {
             channel: "SMS",
             body: "Reminder: Your EMI of {{amount}} is due on {{dueDate}}. Please pay to avoid charges.",
             isActive: true,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
+            createdAt: new Date().toISOString()
         }
     ]).onConflictDoNothing();
 
@@ -91,8 +89,7 @@ export async function seedData() {
             fieldLabel: "Referral Source",
             isRequired: false,
             isActive: true,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
+            createdAt: new Date().toISOString()
         },
         {
             id: crypto.randomUUID(),
@@ -103,8 +100,7 @@ export async function seedData() {
             options: JSON.stringify(["Residential", "Commercial", "Industrial"]),
             isRequired: true,
             isActive: true,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
+            createdAt: new Date().toISOString()
         }
     ]).onConflictDoNothing();
 
