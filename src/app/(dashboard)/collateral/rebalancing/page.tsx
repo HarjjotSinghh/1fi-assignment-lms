@@ -72,9 +72,12 @@ export default function RebalancingPage() {
     const loadData = async () => {
         setIsLoading(true);
         try {
-            // Import and call the rebalancing function
-            const { detectRebalancingNeeds } = await import("@/lib/rebalancing");
-            const result = await detectRebalancingNeeds();
+            // Use API route for server-side database access
+            const response = await fetch("/api/collateral/rebalancing");
+            if (!response.ok) {
+                throw new Error("Failed to fetch rebalancing data");
+            }
+            const result = await response.json();
             setData(result);
         } catch (error) {
             console.error(error);

@@ -19,9 +19,11 @@ import {
     loanProducts,
     loanApplications,
     recoveryAgents,
-    collaterals
+    collaterals,
+    loginHistory
 } from "@/db/schema";
-import { addDays, subDays, startOfMonth, addMonths } from "date-fns";
+import { addDays, subDays, startOfMonth, addMonths, subHours } from "date-fns";
+
 
 export async function seedData() {
     console.log("Seeding data...");
@@ -422,7 +424,7 @@ export async function seedData() {
             }
         ]).onConflictDoNothing();
 
-        // 8. Notifications
+        // 8. Notifications - Expanded mock data
         await db.insert(notifications).values([
             {
                 id: crypto.randomUUID(),
@@ -437,12 +439,138 @@ export async function seedData() {
             {
                 id: crypto.randomUUID(),
                 userId: user.id,
+                type: "WARNING",
+                title: "Margin Call Alert",
+                message: "Loan LN-2024-001 has breached 70% LTV threshold. Immediate action required.",
+                isRead: false,
+                link: "/collateral/rebalancing",
+                createdAt: subHours(new Date(), 2).toISOString()
+            },
+            {
+                id: crypto.randomUUID(),
+                userId: user.id,
+                type: "SUCCESS",
+                title: "Payment Received",
+                message: "Payment of ₹8,908 received for loan LN-2024-002 via UPI.",
+                isRead: false,
+                link: "/payments/reconciliation",
+                createdAt: subHours(new Date(), 4).toISOString()
+            },
+            {
+                id: crypto.randomUUID(),
+                userId: user.id,
+                type: "INFO",
+                title: "KYC Verification Complete",
+                message: "Customer Rahul Sharma's KYC has been successfully verified via DigiLocker.",
+                isRead: true,
+                readAt: subHours(new Date(), 1).toISOString(),
+                link: "/customers",
+                createdAt: subHours(new Date(), 6).toISOString()
+            },
+            {
+                id: crypto.randomUUID(),
+                userId: user.id,
                 type: "INFO",
                 title: "System Maintenance",
-                message: "Scheduled maintenance tonight at 11 PM.",
+                message: "Scheduled maintenance tonight at 11 PM. Expected downtime: 30 minutes.",
                 isRead: true,
                 readAt: new Date().toISOString(),
                 createdAt: subDays(new Date(), 1).toISOString()
+            },
+            {
+                id: crypto.randomUUID(),
+                userId: user.id,
+                type: "ALERT",
+                title: "Legal Case Update",
+                message: "Next hearing for case CS/2024/001 is scheduled for next week.",
+                isRead: false,
+                link: "/legal",
+                createdAt: subDays(new Date(), 1).toISOString()
+            },
+            {
+                id: crypto.randomUUID(),
+                userId: user.id,
+                type: "SUCCESS",
+                title: "Loan Disbursed",
+                message: "Loan LN-2024-003 for ₹2,00,000 has been disbursed successfully.",
+                isRead: true,
+                readAt: subDays(new Date(), 2).toISOString(),
+                link: "/loans",
+                createdAt: subDays(new Date(), 2).toISOString()
+            },
+            {
+                id: crypto.randomUUID(),
+                userId: user.id,
+                type: "WARNING",
+                title: "Overdue EMI",
+                message: "Customer John Doe has an overdue EMI of ₹4,500. Consider follow-up.",
+                isRead: false,
+                link: "/collections",
+                createdAt: subDays(new Date(), 3).toISOString()
+            }
+        ]).onConflictDoNothing();
+
+        // 9. Login History - Mock data
+        await db.insert(loginHistory).values([
+            {
+                id: crypto.randomUUID(),
+                userId: user.id,
+                success: true,
+                ipAddress: "192.168.1.100",
+                userAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Chrome/120.0.0.0",
+                location: "Mumbai, India",
+                mfaUsed: false,
+                createdAt: new Date().toISOString()
+            },
+            {
+                id: crypto.randomUUID(),
+                userId: user.id,
+                success: true,
+                ipAddress: "192.168.1.100",
+                userAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Chrome/120.0.0.0",
+                location: "Mumbai, India",
+                mfaUsed: true,
+                createdAt: subHours(new Date(), 8).toISOString()
+            },
+            {
+                id: crypto.randomUUID(),
+                userId: user.id,
+                success: false,
+                ipAddress: "103.42.11.55",
+                userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Firefox/121.0",
+                location: "Delhi, India",
+                failureReason: "Invalid password",
+                createdAt: subDays(new Date(), 1).toISOString()
+            },
+            {
+                id: crypto.randomUUID(),
+                userId: user.id,
+                success: true,
+                ipAddress: "192.168.1.100",
+                userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 17_2) Safari/604.1",
+                location: "Mumbai, India",
+                mfaUsed: true,
+                createdAt: subDays(new Date(), 1).toISOString()
+            },
+            {
+                id: crypto.randomUUID(),
+                userId: user.id,
+                success: true,
+                ipAddress: "192.168.1.105",
+                userAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Chrome/119.0.0.0",
+                location: "Pune, India",
+                mfaUsed: false,
+                createdAt: subDays(new Date(), 2).toISOString()
+            },
+            {
+                id: crypto.randomUUID(),
+                userId: user.id,
+                success: false,
+                ipAddress: "45.33.22.11",
+                userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/118.0.0.0",
+                location: "Unknown",
+                failureReason: "Suspicious login attempt blocked",
+                createdAt: subDays(new Date(), 3).toISOString()
             }
         ]).onConflictDoNothing();
     }

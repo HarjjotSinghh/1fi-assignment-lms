@@ -44,29 +44,18 @@ export default function RegulatoryReportsPage() {
     const handleGenerateReport = async (type: string) => {
         setIsLoading(true);
         try {
-            // Call the API endpoint
+            // Call the API endpoint for server-side report generation
             const res = await fetch(`/api/reports/regulatory?type=${type}`);
             if (!res.ok) {
-                // Fallback to client-side generation
-                const { generateRegulatoryReport } = await import("@/lib/regulatory-reports");
-                const data = await generateRegulatoryReport(type);
-                setReportData(prev => ({ ...prev, [type]: data }));
-            } else {
-                const data = await res.json();
-                setReportData(prev => ({ ...prev, [type]: data }));
+                const error = await res.json();
+                throw new Error(error.error || "Failed to generate report");
             }
+            const data = await res.json();
+            setReportData(prev => ({ ...prev, [type]: data }));
             toast.success("Report generated from live data");
         } catch (error) {
             console.error(error);
-            // Try direct import as fallback
-            try {
-                const { generateRegulatoryReport } = await import("@/lib/regulatory-reports");
-                const data = await generateRegulatoryReport(type);
-                setReportData(prev => ({ ...prev, [type]: data }));
-                toast.success("Report generated successfully");
-            } catch {
-                toast.error("Failed to generate report");
-            }
+            toast.error("Failed to generate report. Please try again.");
         } finally {
             setIsLoading(false);
         }

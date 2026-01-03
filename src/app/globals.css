@@ -7,14 +7,14 @@
     /* 1fi.in Color Palette - Purple & Gold Premium */
       --background: 0 0% 100%;
       /* #ffffff */
-      --foreground: 0 0% 29.4%;
-      /* #4b4b4b */
+      --foreground: 222 47% 11%;
+        /* #0f172a - Very dark blue-gray (Inter default) for sharp readability */
 
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 29.4%;
+    --card-foreground: 222 47% 11%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 29.4%;
+    --popover-foreground: 222 47% 11%;
 
     /* Primary - Brand Purple */
       --primary: 263 68% 50%;
@@ -27,9 +27,10 @@
       --secondary-foreground: 263 68% 50%;
       /* Brand Purple for contrast */
 
-    --muted: 0 0% 95%;
-      --muted-foreground: 0 0% 77%;
-      /* #c4c4c4 */
+    --muted: 210 40% 96.1%;
+      /* #f1f5f9 */
+      --muted-foreground: 215 16% 47%;
+      /* #64748b - Slate-500, much better contrast than #c4c4c4 */
 
     /* Accent - Very Light Purple / Gold */
       --accent: 275 100% 98%;
@@ -95,12 +96,14 @@
     --secondary: 240 4% 16%;
       --secondary-foreground: 0 0% 98%;
 
-    --muted: 240 4% 16%;
-      --muted-foreground: 240 5% 65%;
+    --muted: 217 33% 17%;
+      /* Darker background for muted areas */
+      --muted-foreground: 215 20% 75%;
+      /* #94a3b8 - Slate-400, lighter for better dark mode reading */
 
     --accent: 261 73% 20%;
       /* Darker purple tint */
-      --accent-foreground: 258 90% 66%;
+      --accent-foreground: 210 40% 98%;
 
     --destructive: 0 62% 30%;
       --destructive-foreground: 0 0% 98%;

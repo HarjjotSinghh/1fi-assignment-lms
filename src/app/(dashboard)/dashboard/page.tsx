@@ -378,7 +378,7 @@ export default async function DashboardPage(props: DashboardPageProps) {
             </div>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 stagger-children">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5 stagger-children">
             {heroStats.map((stat) => (
               <Card key={stat.label} className="bg-card/80 backdrop-blur-sm">
                 <CardContent className="p-4">

@@ -10,9 +10,9 @@ export default function AdminLandingPage() {
   return (
     <div className="min-h-screen grid lg:grid-cols-2 animate-fade-in">
       {/* Left Column: Branding & Context */}
-      <div className="relative hidden lg:flex flex-col justify-between p-12 bg-zinc-900 text-white dark:bg-zinc-950">
-        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1639322537228-f710d846310a?q=80&w=2832&auto=format&fit=crop')] bg-cover bg-center opacity-20 mix-blend-overlay"></div>
-        <div className="absolute inset-0 bg-gradient-to-br from-zinc-900 via-zinc-900/90 to-zinc-800/50"></div>
+      <div className="relative hidden lg:flex flex-col justify-between p-12 bg-primary text-white dark:bg-zinc-950">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/90 via-primary to-purple-900 opacity-90 transition-all"></div>
+        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1639322537228-f710d846310a?q=80&w=2832&auto=format&fit=crop')] bg-cover bg-center opacity-10 mix-blend-overlay"></div>
 
         <div className="relative z-10">
           <Link href="/" className="flex items-center gap-3 mb-10">
@@ -30,13 +30,13 @@ export default function AdminLandingPage() {
             <h1 className="font-heading text-4xl md:text-5xl font-bold leading-tight">
               Command Center for Modern Lending.
             </h1>
-            <p className="text-zinc-400 text-lg">
+            <p className="text-white/80 text-lg">
               Manage your loan book, monitor real-time collateral risks, and orchestrate compliance workflows from a single, unified interface.
             </p>
           </div>
         </div>
 
-        <div className="relative z-10 text-sm text-zinc-500 flex justify-between items-end">
+        <div className="relative z-10 text-sm text-white/60 flex justify-between items-end">
           <div className="space-y-1">
             <p>© {new Date().getFullYear()} Fiquity Technology Ltd.</p>
             <p>Authorized personnel only. All activities are monitored.</p>

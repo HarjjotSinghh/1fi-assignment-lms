@@ -341,7 +341,7 @@ export default async function RiskDashboardPage() {
       </section>
 
       {/* Portfolio Health Score */}
-      <section className="grid gap-6 lg:grid-cols-4">
+      <section className="grid gap-6 lg:grid-cols-5">
         <Card className="lg:col-span-1 bg-gradient-to-br from-slate-50 to-white dark:from-slate-950 dark:to-slate-900">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Portfolio Health</CardTitle>

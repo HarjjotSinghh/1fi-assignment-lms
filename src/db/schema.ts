@@ -1398,6 +1398,14 @@ export const emiScheduleRelations = relations(emiSchedule, ({ one }) => ({
     }),
 }));
 
+export const autoApprovalRulesRelations = relations(autoApprovalRules, ({ one }) => ({
+    product: one(loanProducts, {
+        fields: [autoApprovalRules.productId],
+        references: [loanProducts.id],
+    }),
+}));
+
+
 // Type exports for insert/select operations
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;

@@ -43,7 +43,7 @@ function LoginContent() {
 
   return (
     <div className="min-h-screen grid lg:grid-cols-2">
-      <div className="relative hidden lg:flex flex-col justify-between overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 p-12 text-white">
+      <div className="relative hidden lg:flex flex-col justify-between overflow-hidden bg-gradient-to-br from-primary/95 via-primary/80 to-purple-900 p-12 text-white">
         <div className="absolute inset-0 opacity-20">
           <div className="absolute -top-24 right-0 h-60 w-60 rounded-full bg-primary/40 blur-3xl" />
           <div className="absolute -bottom-24 left-0 h-60 w-60 rounded-full bg-accent/30 blur-3xl" />
