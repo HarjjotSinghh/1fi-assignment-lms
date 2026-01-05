@@ -61,10 +61,10 @@ export default auth((req) => {
     // We use "any" cast because we extended the type but TypeScript in this context might not pick it up instantly 
     const onboardingCompleted = (user as any)?.onboardingCompleted;
 
-    // If not completed and not on onboarding page, force redirect
-    if (!onboardingCompleted && !isOnboardingPage && pathname !== "/logout") {
-        return NextResponse.redirect(new URL("/onboarding", nextUrl));
-    }
+    // Onboarding is now optional
+    // if (!onboardingCompleted && !isOnboardingPage && pathname !== "/logout") {
+    //     return NextResponse.redirect(new URL("/onboarding", nextUrl));
+    // }
 
     // Optional: Redirect away from onboarding if completed
     if (onboardingCompleted && isOnboardingPage) {

@@ -236,8 +236,13 @@ type DashboardPageProps = {
   searchParams: Promise<SearchParams>;
 };
 
+import { auth } from "@/lib/auth";
+
 export default async function DashboardPage(props: DashboardPageProps) {
   const searchParams = await props.searchParams;
+  const session = await auth();
+  const isOnboardingComplete = session?.user?.onboardingCompleted;
+
   const stats = await getDashboardStats();
 
   const outstanding = stats.totalDisbursed * 0.62;
@@ -336,6 +341,21 @@ export default async function DashboardPage(props: DashboardPageProps) {
 
   return (
     <div className="space-y-8 animate-fade-in">
+      {!isOnboardingComplete && (
+        <Alert className="border-warning/30 bg-warning/10 rounded-none">
+          <RiAlertLine className="h-4 w-4 text-warning" />
+          <AlertTitle className="text-warning">Onboarding Incomplete</AlertTitle>
+          <AlertDescription className="flex items-center justify-between flex-wrap gap-2 text-warning/90">
+            <span>Please complete your onboarding/kyc/customer profile setup.</span>
+            <Link href="/onboarding">
+              <Button size="sm" variant="outline" className="h-8 border-warning/30 hover:bg-warning/20 text-warning hover:text-warning">
+                Complete Setup
+              </Button>
+            </Link>
+          </AlertDescription>
+        </Alert>
+      )}
+
       <section className="relative overflow-hidden rounded-none border bg-gradient-to-br from-primary/5 via-background to-accent/10 p-6 md:p-8 dark:from-primary/10 dark:via-background dark:to-accent/5">
         <div
           aria-hidden="true"

@@ -46,29 +46,72 @@ export async function POST(request: Request) {
             .limit(1);
 
         if (existingCustomer.length > 0) {
+            const currentCustomer = existingCustomer[0];
+
+            // Check for Aadhaar conflict if changing
+            if (aadhaarNumber && String(aadhaarNumber) !== currentCustomer.aadhaarNumber) {
+                const conflict = await db
+                    .select()
+                    .from(customers)
+                    .where(eq(customers.aadhaarNumber, String(aadhaarNumber)))
+                    .limit(1);
+                
+                if (conflict.length > 0) {
+                    return NextResponse.json(
+                        { error: "Aadhaar number already registered with another account" },
+                        { status: 400 }
+                    );
+                }
+            }
+
+            // Check for PAN conflict if changing
+            if (panNumber && String(panNumber) !== currentCustomer.panNumber) {
+                const conflict = await db
+                    .select()
+                    .from(customers)
+                    .where(eq(customers.panNumber, String(panNumber)))
+                    .limit(1);
+                
+                if (conflict.length > 0) {
+                    return NextResponse.json(
+                        { error: "PAN number already registered with another account" },
+                        { status: 400 }
+                    );
+                }
+            }
+
+            // Prepare update payload
+            const updatePayload: any = {
+                firstName,
+                lastName,
+                phone,
+                dateOfBirth,
+                addressLine1: addressLine1 || null,
+                addressLine2: addressLine2 || null,
+                city: city || null,
+                state: state || null,
+                pincode: pincode || null,
+                employmentType: employmentType || null,
+                monthlyIncome: monthlyIncome || null,
+                companyName: companyName || null,
+                kycStatus,
+                updatedAt: new Date().toISOString(),
+            };
+
+            // Only update Aadhaar/PAN if provided
+            if (aadhaarNumber) {
+                updatePayload.aadhaarNumber = String(aadhaarNumber);
+                updatePayload.aadhaarVerified = true;
+            }
+            if (panNumber) {
+                updatePayload.panNumber = String(panNumber);
+                updatePayload.panVerified = true;
+            }
+
             // Update existing customer
             const updated = await db
                 .update(customers)
-                .set({
-                    firstName,
-                    lastName,
-                    phone,
-                    dateOfBirth,
-                    addressLine1: addressLine1 || null,
-                    addressLine2: addressLine2 || null,
-                    city: city || null,
-                    state: state || null,
-                    pincode: pincode || null,
-                    employmentType: employmentType || null,
-                    monthlyIncome: monthlyIncome || null,
-                    companyName: companyName || null,
-                    kycStatus,
-                    aadhaarNumber: aadhaarNumber ? String(aadhaarNumber) : existingCustomer[0].aadhaarNumber,
-                    panNumber: panNumber ? String(panNumber) : existingCustomer[0].panNumber,
-                    aadhaarVerified: isAadhaarVerified || existingCustomer[0].aadhaarVerified,
-                    panVerified: isPanVerified || existingCustomer[0].panVerified,
-                    updatedAt: new Date().toISOString(),
-                })
+                .set(updatePayload)
                 .where(eq(customers.email, email))
                 .returning();
 
@@ -84,7 +127,7 @@ export async function POST(request: Request) {
             const existingAadhaar = await db
                 .select()
                 .from(customers)
-                .where(eq(customers.aadhaarNumber, aadhaarNumber))
+                .where(eq(customers.aadhaarNumber, String(aadhaarNumber)))
                 .limit(1);
 
             if (existingAadhaar.length > 0) {
@@ -99,7 +142,7 @@ export async function POST(request: Request) {
             const existingPan = await db
                 .select()
                 .from(customers)
-                .where(eq(customers.panNumber, panNumber))
+                .where(eq(customers.panNumber, String(panNumber)))
                 .limit(1);
 
             if (existingPan.length > 0) {

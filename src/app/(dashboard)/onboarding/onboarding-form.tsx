@@ -231,7 +231,7 @@ export function OnboardingForm() {
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || "Failed to create profile");
+        throw new Error(error.message || error.error || "Failed to create profile");
       }
 
       toast.success("Profile created successfully!", {

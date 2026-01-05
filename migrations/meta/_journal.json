@@ -50,6 +50,13 @@
       "when": 1767436842487,
       "tag": "0006_old_power_man",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1767610274584,
+      "tag": "0007_faulty_mauler",
+      "breakpoints": true
     }
   ]
 }
